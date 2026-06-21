@@ -1,36 +1,139 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🔥 Paga meu Churrasco
 
-## Getting Started
+Plataforma de bolão online entre amigos para a Copa do Mundo e outros campeonatos esportivos.
 
-First, run the development server:
+## Stack
+
+- **Next.js 16** (App Router + TypeScript)
+- **Tailwind CSS v4** (mobile-first)
+- **Prisma 5** + **SQLite** (banco local)
+- **NextAuth.js v4** (autenticação com JWT)
+- **bcryptjs** (hash de senhas)
+- **Sonner** (notificações toast)
+- **Lucide React** (ícones)
+
+## Pré-requisitos
+
+- Node.js 18+
+- npm
+
+## Setup rápido
 
 ```bash
+# 1. Instalar dependências
+npm install
+
+# 2. Criar o banco de dados e rodar migrações
+npx prisma migrate dev --name init
+
+# 3. Popular com dados de teste
+npx ts-node --compiler-options '{"module":"CommonJS"}' prisma/seed.ts
+
+# 4. Iniciar o servidor de desenvolvimento
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Acesse [http://localhost:3000](http://localhost:3000)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Credenciais de teste
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Tipo       | E-mail                            | Senha    |
+|------------|-----------------------------------|----------|
+| **Admin**  | admin@pagameuchurrasco.com        | admin123 |
+| **Usuário**| user@pagameuchurrasco.com         | user123  |
 
-## Learn More
+## Scripts disponíveis
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+npm run dev           # Servidor de desenvolvimento
+npm run build         # Build de produção
+npm run db:generate   # Regenerar Prisma Client
+npm run db:migrate    # Rodar migrações
+npm run db:seed       # Popular banco com dados de teste
+npm run db:studio     # Abrir Prisma Studio (visualizar BD)
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Estrutura do projeto
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```
+src/
+├── app/
+│   ├── api/              # API Routes
+│   │   ├── auth/         # NextAuth
+│   │   ├── register/     # Cadastro de usuário
+│   │   ├── teams/        # CRUD Seleções
+│   │   ├── players/      # CRUD Jogadores
+│   │   ├── groups/       # CRUD Grupos
+│   │   ├── matches/      # CRUD Partidas
+│   │   ├── stadiums/     # CRUD Estádios
+│   │   └── badges/       # CRUD Conquistas
+│   ├── admin/            # Painel administrativo
+│   ├── dashboard/        # Área do usuário
+│   ├── login/            # Tela de login
+│   └── register/         # Tela de cadastro
+├── components/
+│   ├── ui/               # Componentes base (Button, Input, Card...)
+│   ├── layout/           # Navbar, Sidebar, etc.
+│   └── admin/            # Componentes admin
+├── lib/
+│   ├── auth.ts           # Configuração NextAuth
+│   ├── prisma.ts         # Prisma Client singleton
+│   └── utils.ts          # Utilitários
+└── types/                # TypeScript types
+prisma/
+├── schema.prisma         # Schema do banco de dados
+├── seed.ts               # Dados iniciais
+└── migrations/           # Migrações SQL
+```
 
-## Deploy on Vercel
+## Rotas de acesso
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+| Rota              | Acesso         | Descrição                    |
+|-------------------|----------------|------------------------------|
+| `/`               | Público        | Landing page                 |
+| `/login`          | Público        | Login                        |
+| `/register`       | Público        | Cadastro                     |
+| `/dashboard`      | Logado         | Dashboard do usuário         |
+| `/admin`          | Admin          | Painel administrativo        |
+| `/admin/teams`    | Admin          | CRUD Seleções                |
+| `/admin/players`  | Admin          | CRUD Jogadores               |
+| `/admin/groups`   | Admin          | CRUD Grupos                  |
+| `/admin/matches`  | Admin          | CRUD Partidas                |
+| `/admin/stadiums` | Admin          | CRUD Estádios                |
+| `/admin/badges`   | Admin          | CRUD Conquistas              |
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Variáveis de ambiente
+
+Arquivo `.env.local`:
+```
+DATABASE_URL="file:./dev.db"
+NEXTAUTH_SECRET="sua-chave-secreta-aqui"
+NEXTAUTH_URL="http://localhost:3000"
+```
+
+## Fase 1 — O que está implementado
+
+- [x] Landing page pública
+- [x] Cadastro de usuário
+- [x] Login / Logout
+- [x] Proteção de rotas (middleware)
+- [x] Dois papéis: User e Admin
+- [x] Área do usuário com placeholders
+- [x] Painel administrativo completo
+- [x] CRUD de Seleções
+- [x] CRUD de Jogadores
+- [x] CRUD de Grupos
+- [x] CRUD de Partidas
+- [x] CRUD de Estádios
+- [x] CRUD de Conquistas/Badges
+- [x] Design mobile-first
+- [x] Dados seed para testes
+
+## Próximas fases
+
+- [ ] Bolões entre amigos
+- [ ] Sistema de palpites
+- [ ] Pontuação e ranking
+- [ ] Badges conquistadas pelo usuário
+- [ ] Partida valendo dobro
+- [ ] Notificações em tempo real

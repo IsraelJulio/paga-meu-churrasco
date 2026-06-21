@@ -1,0 +1,104 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  role         String   @default("User")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Team {
+  id             String   @id @default(cuid())
+  name           String
+  code           String   @unique
+  group          String?
+  flagUrl        String?
+  primaryColor   String?
+  secondaryColor String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  homePlayers Player[]      @relation("TeamPlayers")
+  homeMatches Match[]       @relation("HomeTeam")
+  awayMatches Match[]       @relation("AwayTeam")
+}
+
+model Player {
+  id        String   @id @default(cuid())
+  teamId    String
+  name      String
+  number    Int?
+  position  String?
+  club      String?
+  photoUrl  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  team Team @relation("TeamPlayers", fields: [teamId], references: [id], onDelete: Cascade)
+}
+
+model Group {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  matches Match[]
+}
+
+model Stadium {
+  id        String   @id @default(cuid())
+  name      String
+  city      String
+  country   String
+  capacity  Int?
+  imageUrl  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  matches Match[]
+}
+
+model Match {
+  id         String   @id @default(cuid())
+  homeTeamId String
+  awayTeamId String
+  groupId    String?
+  stadiumId  String?
+  matchDate  DateTime
+  homeScore  Int?
+  awayScore  Int?
+  status     String   @default("Scheduled")
+  phase      String   @default("GroupStage")
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  homeTeam Team    @relation("HomeTeam", fields: [homeTeamId], references: [id])
+  awayTeam Team    @relation("AwayTeam", fields: [awayTeamId], references: [id])
+  group    Group?  @relation(fields: [groupId], references: [id])
+  stadium  Stadium? @relation(fields: [stadiumId], references: [id])
+}
+
+model Badge {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  icon        String?
+  category    String?
+  condition   String?
+  points      Int      @default(0)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}

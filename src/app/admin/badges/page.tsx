@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Plus, Search, Star, Edit, Trash2, Eye } from "lucide-react";
+import { Plus, Search, Star, Edit, Trash2, Eye, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -10,6 +10,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { PageSpinner } from "@/components/ui/spinner";
 import { PageHeader } from "@/components/admin/page-header";
 import { toast } from "sonner";
+import { JsonImportModal } from "@/components/import/json-import-modal";
 
 interface BadgeItem { id: string; name: string; description?: string | null; icon?: string | null; category?: string | null; points: number; isActive: boolean; }
 
@@ -19,6 +20,7 @@ export default function BadgesPage() {
   const [loading, setLoading] = useState(true);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [showImport, setShowImport] = useState(false);
 
   async function load(q = "") {
     setLoading(true);
@@ -41,7 +43,7 @@ export default function BadgesPage() {
   return (
     <div>
       <PageHeader title="Conquistas" description="Configure badges e conquistas"
-        actions={<Link href="/admin/badges/new"><Button variant="primary" size="sm"><Plus className="h-4 w-4" />Nova conquista</Button></Link>} />
+        actions={<div className="flex items-center gap-2"><Button variant="outline" size="sm" onClick={() => setShowImport(true)}><Upload className="h-4 w-4" />Importar JSON</Button><Link href="/admin/badges/new"><Button variant="primary" size="sm"><Plus className="h-4 w-4" />Nova conquista</Button></Link></div>} />
       <form onSubmit={(e) => { e.preventDefault(); load(search); }} className="flex gap-2 mb-4">
         <Input placeholder="Buscar conquista..." value={search} onChange={(e) => setSearch(e.target.value)} className="flex-1" />
         <Button type="submit" variant="ghost"><Search className="h-4 w-4" /></Button>
@@ -81,6 +83,7 @@ export default function BadgesPage() {
         </div>
       )}
       <ConfirmDialog open={!!deleteId} onClose={() => setDeleteId(null)} onConfirm={handleDelete} loading={deleting} title="Excluir conquista?" description="Esta ação não pode ser desfeita." />
+      <JsonImportModal open={showImport} onClose={() => { setShowImport(false); load(search); }} entityType="badges" />
     </div>
   );
 }

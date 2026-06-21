@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Plus, Search, Calendar, Edit, Trash2, Eye } from "lucide-react";
+import { Plus, Search, Calendar, Edit, Trash2, Eye, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -11,6 +11,7 @@ import { PageSpinner } from "@/components/ui/spinner";
 import { PageHeader } from "@/components/admin/page-header";
 import { toast } from "sonner";
 import { MATCH_STATUS_LABELS, MATCH_PHASE_LABELS, MatchStatus, MatchPhase } from "@/types";
+import { JsonImportModal } from "@/components/import/json-import-modal";
 import { formatDateTime } from "@/lib/utils";
 
 interface Match {
@@ -34,6 +35,7 @@ export default function MatchesPage() {
   const [loading, setLoading] = useState(true);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [showImport, setShowImport] = useState(false);
 
   async function load() {
     setLoading(true);
@@ -56,7 +58,7 @@ export default function MatchesPage() {
   return (
     <div>
       <PageHeader title="Partidas" description="Gerencie as partidas do torneio"
-        actions={<Link href="/admin/matches/new"><Button variant="primary" size="sm"><Plus className="h-4 w-4" />Nova partida</Button></Link>} />
+        actions={<div className="flex items-center gap-2"><Button variant="outline" size="sm" onClick={() => setShowImport(true)}><Upload className="h-4 w-4" />Importar JSON</Button><Link href="/admin/matches/new"><Button variant="primary" size="sm"><Plus className="h-4 w-4" />Nova partida</Button></Link></div>} />
       {loading ? <PageSpinner label="Carregando partidas..." /> : matches.length === 0 ? (
         <EmptyState icon={Calendar} title="Nenhuma partida cadastrada" description="Adicione partidas ao calendário do torneio."
           action={<Link href="/admin/matches/new"><Button variant="primary"><Plus className="h-4 w-4" />Nova partida</Button></Link>} />
@@ -95,6 +97,7 @@ export default function MatchesPage() {
         </div>
       )}
       <ConfirmDialog open={!!deleteId} onClose={() => setDeleteId(null)} onConfirm={handleDelete} loading={deleting} title="Excluir partida?" description="Esta ação não pode ser desfeita." />
+      <JsonImportModal open={showImport} onClose={() => { setShowImport(false); load(); }} entityType="matches" />
     </div>
   );
 }

@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Plus, Search, Users, Edit, Trash2, Eye } from "lucide-react";
+import { Plus, Search, Users, Edit, Trash2, Eye, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
@@ -9,6 +9,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { PageSpinner } from "@/components/ui/spinner";
 import { PageHeader } from "@/components/admin/page-header";
 import { toast } from "sonner";
+import { JsonImportModal } from "@/components/import/json-import-modal";
 
 interface Player {
   id: string;
@@ -25,6 +26,7 @@ export default function PlayersPage() {
   const [loading, setLoading] = useState(true);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [showImport, setShowImport] = useState(false);
 
   async function load(q = "") {
     setLoading(true);
@@ -59,11 +61,17 @@ export default function PlayersPage() {
         title="Jogadores"
         description="Gerencie os jogadores das seleções"
         actions={
-          <Link href="/admin/players/new">
-            <Button variant="primary" size="sm">
-              <Plus className="h-4 w-4" /> Novo jogador
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={() => setShowImport(true)}>
+              <Upload className="h-4 w-4" />
+              Importar JSON
             </Button>
-          </Link>
+            <Link href="/admin/players/new">
+              <Button variant="primary" size="sm">
+                <Plus className="h-4 w-4" /> Novo jogador
+              </Button>
+            </Link>
+          </div>
         }
       />
 
@@ -130,6 +138,11 @@ export default function PlayersPage() {
       )}
 
       <ConfirmDialog open={!!deleteId} onClose={() => setDeleteId(null)} onConfirm={handleDelete} loading={deleting} title="Excluir jogador?" description="Esta ação não pode ser desfeita." />
+      <JsonImportModal
+        open={showImport}
+        onClose={() => { setShowImport(false); load(search); }}
+        entityType="players"
+      />
     </div>
   );
 }

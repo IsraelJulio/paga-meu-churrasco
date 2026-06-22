@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Rajdhani } from "next/font/google";
 import "./globals.css";
 import { SessionProvider } from "@/components/layout/session-provider";
 import { Toaster } from "sonner";
@@ -12,6 +12,12 @@ const geistSans = Geist({
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+});
+
+const rajdhani = Rajdhani({
+  variable: "--font-rajdhani",
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
 });
 
 export const metadata: Metadata = {
@@ -34,9 +40,9 @@ export default function RootLayout({
   return (
     <html
       lang="pt-BR"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} ${rajdhani.variable} h-full antialiased`}
     >
-      <body className="min-h-full bg-slate-50">
+      <body className="min-h-full">
         <SessionProvider>
           {children}
           <Toaster
@@ -44,7 +50,7 @@ export default function RootLayout({
             richColors
             toastOptions={{
               classNames: {
-                toast: "rounded-2xl shadow-xl font-medium",
+                toast: "rounded-2xl shadow-xl font-medium !bg-[#0d0d1e] !border !border-orange-500/30 !text-slate-100",
               },
             }}
           />

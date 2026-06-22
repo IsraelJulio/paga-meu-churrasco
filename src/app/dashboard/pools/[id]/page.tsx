@@ -11,8 +11,6 @@ import {
   Check,
   Target,
   Trophy,
-  Star,
-  Users,
   Crown,
 } from "lucide-react";
 
@@ -146,22 +144,6 @@ export default function PoolDetailPage({ params }: { params: Promise<{ id: strin
           </div>
         </div>
 
-        {/* Stats row */}
-        <div className="grid grid-cols-3 gap-3 mb-4">
-          <div className="bg-white rounded-2xl p-3 border border-slate-100 text-center">
-            <div className="text-xl font-black text-slate-900">{participant.exactScores}</div>
-            <div className="text-xs text-slate-500 mt-0.5">Placares exatos</div>
-          </div>
-          <div className="bg-white rounded-2xl p-3 border border-slate-100 text-center">
-            <div className="text-xl font-black text-slate-900">{participant.currentStreak}</div>
-            <div className="text-xs text-slate-500 mt-0.5">Sequência atual</div>
-          </div>
-          <div className="bg-white rounded-2xl p-3 border border-slate-100 text-center">
-            <div className="text-xl font-black text-slate-900">{participant.badgesCount}</div>
-            <div className="text-xs text-slate-500 mt-0.5">Conquistas</div>
-          </div>
-        </div>
-
         {/* Navigation cards */}
         <div className="grid grid-cols-2 gap-3">
           <Link href={`/dashboard/pools/${id}/predictions`}>
@@ -181,26 +163,6 @@ export default function PoolDetailPage({ params }: { params: Promise<{ id: strin
               </div>
               <p className="font-bold text-slate-900">Ranking</p>
               <p className="text-xs text-slate-400 mt-0.5">Ver classificação</p>
-            </div>
-          </Link>
-
-          <Link href={`/dashboard/pools/${id}/badges`}>
-            <div className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm hover:shadow-md transition-shadow active:scale-[0.99]">
-              <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center mb-3">
-                <Star className="h-5 w-5 text-purple-500" />
-              </div>
-              <p className="font-bold text-slate-900">Conquistas</p>
-              <p className="text-xs text-slate-400 mt-0.5">Badges e troféus</p>
-            </div>
-          </Link>
-
-          <Link href={`/dashboard/pools/${id}/participants`}>
-            <div className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm hover:shadow-md transition-shadow active:scale-[0.99]">
-              <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center mb-3">
-                <Users className="h-5 w-5 text-blue-500" />
-              </div>
-              <p className="font-bold text-slate-900">Participantes</p>
-              <p className="text-xs text-slate-400 mt-0.5">{pool._count.participants} no bolão</p>
             </div>
           </Link>
         </div>

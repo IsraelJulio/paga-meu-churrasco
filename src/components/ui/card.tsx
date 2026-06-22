@@ -9,9 +9,9 @@ function Card({ className, hover, ...props }: CardProps) {
   return (
     <div
       className={cn(
-        "bg-white rounded-2xl border border-slate-100 shadow-sm",
+        "bg-[#0d0d1e] rounded-2xl border border-orange-500/18 shadow-[0_0_22px_rgba(249,115,22,0.06),inset_0_1px_0_rgba(255,255,255,0.04)]",
         hover &&
-          "transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 cursor-pointer",
+          "transition-all duration-200 hover:shadow-[0_0_32px_rgba(249,115,22,0.13)] hover:border-orange-500/38 hover:-translate-y-0.5 cursor-pointer",
         className
       )}
       {...props}
@@ -42,7 +42,7 @@ function CardFooter({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
 function CardTitle({ className, ...props }: HTMLAttributes<HTMLHeadingElement>) {
   return (
     <h3
-      className={cn("text-lg font-bold text-slate-900", className)}
+      className={cn("text-lg font-bold text-slate-100", className)}
       {...props}
     />
   );
@@ -53,7 +53,7 @@ function CardDescription({
   ...props
 }: HTMLAttributes<HTMLParagraphElement>) {
   return (
-    <p className={cn("text-sm text-slate-500 mt-1", className)} {...props} />
+    <p className={cn("text-sm text-slate-400 mt-1", className)} {...props} />
   );
 }
 

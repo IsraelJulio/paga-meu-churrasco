@@ -23,12 +23,12 @@ import { cn } from "@/lib/utils";
 const navItems = [
   { href: "/admin", icon: LayoutDashboard, label: "Dashboard", exact: true },
   { href: "/admin/teams", icon: Flag, label: "Seleções" },
-  { href: "/admin/players", icon: Users, label: "Jogadores" },
-  { href: "/admin/groups", icon: Trophy, label: "Grupos" },
   { href: "/admin/matches", icon: Calendar, label: "Partidas" },
-  { href: "/admin/stadiums", icon: MapPin, label: "Estádios" },
-  { href: "/admin/badges", icon: Star, label: "Conquistas" },
-  { href: "/admin/imports", icon: Upload, label: "Importações" },
+  { href: "/admin/players", icon: Users, label: "Jogadores", obsolete: true },
+  { href: "/admin/groups", icon: Trophy, label: "Grupos", obsolete: true },
+  { href: "/admin/stadiums", icon: MapPin, label: "Estádios", obsolete: true },
+  { href: "/admin/badges", icon: Star, label: "Conquistas", obsolete: true },
+  { href: "/admin/imports", icon: Upload, label: "Importações", obsolete: true },
 ];
 
 interface AdminMobileNavProps {
@@ -79,7 +79,7 @@ export function AdminMobileNav({ userName }: AdminMobileNavProps) {
               <p className="text-xs text-orange-400">Administrador</p>
             </div>
             <nav className="flex-1 p-3 overflow-y-auto">
-              {navItems.map((item) => (
+              {navItems.filter((i) => !i.obsolete).map((item) => (
                 <Link
                   key={item.href}
                   href={item.href}
@@ -93,6 +93,28 @@ export function AdminMobileNav({ userName }: AdminMobileNavProps) {
                 >
                   <item.icon className="h-5 w-5 shrink-0" />
                   {item.label}
+                </Link>
+              ))}
+              <p className="text-xs font-semibold text-slate-600 px-3 mb-2 mt-4 uppercase tracking-wider">
+                Obsoleto
+              </p>
+              {navItems.filter((i) => i.obsolete).map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => setOpen(false)}
+                  className={cn(
+                    "flex items-center gap-3 px-3 py-3 rounded-xl mb-1 text-sm font-medium transition-colors opacity-50",
+                    isActive(item.href, item.exact)
+                      ? "bg-slate-600 text-white"
+                      : "text-slate-400 hover:bg-white/5 hover:text-slate-300"
+                  )}
+                >
+                  <item.icon className="h-4 w-4 shrink-0" />
+                  <span className="flex-1">{item.label}</span>
+                  <span className="text-[10px] font-bold bg-slate-700 text-slate-400 px-1.5 py-0.5 rounded-full">
+                    OBSOLETO
+                  </span>
                 </Link>
               ))}
             </nav>

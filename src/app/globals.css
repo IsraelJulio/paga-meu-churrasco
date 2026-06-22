@@ -21,19 +21,69 @@
 
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --font-display: var(--font-rajdhani);
 }
 
 :root {
-  --background: #f8fafc;
-  --foreground: #0f172a;
+  --background: #060611;
+  --foreground: #e2e8f0;
+
+  --card-bg: #0d0d1e;
+  --card-border: rgba(249, 115, 22, 0.18);
+  --card-glow: rgba(249, 115, 22, 0.07);
+
+  --neon-orange: #f97316;
+  --neon-amber: #f59e0b;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0f172a;
-    --foreground: #f8fafc;
+/* ─── Keyframes ──────────────────────────────────────────── */
+
+@keyframes neon-pulse {
+  0%, 100% {
+    box-shadow: 0 0 8px rgba(249, 115, 22, 0.35), 0 0 20px rgba(249, 115, 22, 0.15);
+  }
+  50% {
+    box-shadow: 0 0 16px rgba(249, 115, 22, 0.7), 0 0 40px rgba(249, 115, 22, 0.3);
   }
 }
+
+@keyframes glow-text {
+  0%, 100% { text-shadow: 0 0 8px rgba(249, 115, 22, 0.4); }
+  50% { text-shadow: 0 0 18px rgba(249, 115, 22, 0.9), 0 0 35px rgba(249, 115, 22, 0.4); }
+}
+
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes score-pop {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+
+@keyframes border-glow {
+  0%, 100% { border-color: rgba(249, 115, 22, 0.2); }
+  50%       { border-color: rgba(249, 115, 22, 0.5); }
+}
+
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* ─── Base ───────────────────────────────────────────────── */
 
 * {
   box-sizing: border-box;
@@ -47,23 +97,86 @@ html {
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans, Arial, Helvetica, sans-serif);
   min-height: 100%;
   -webkit-tap-highlight-color: transparent;
+  background-image:
+    linear-gradient(rgba(249, 115, 22, 0.022) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(249, 115, 22, 0.022) 1px, transparent 1px);
+  background-size: 48px 48px;
 }
 
-/* Custom scrollbar */
+/* ─── Scrollbar ──────────────────────────────────────────── */
+
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 4px;
+  height: 4px;
 }
 ::-webkit-scrollbar-track {
-  background: transparent;
+  background: #0d0d1e;
 }
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 3px;
+  background: rgba(249, 115, 22, 0.5);
+  border-radius: 2px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: rgba(249, 115, 22, 0.8);
 }
+
+/* ─── Utility classes ────────────────────────────────────── */
+
+.font-display {
+  font-family: var(--font-rajdhani, var(--font-geist-sans));
+}
+
+.animate-slide-up {
+  animation: slide-up 0.3s ease-out both;
+}
+
+.animate-fade-in {
+  animation: fade-in 0.25s ease-out both;
+}
+
+.gamer-glow {
+  animation: neon-pulse 2.5s ease-in-out infinite;
+}
+
+.neon-text {
+  color: var(--neon-orange);
+  animation: glow-text 3s ease-in-out infinite;
+}
+
+.score-pop {
+  animation: score-pop 0.4s ease-out both;
+}
+
+/* Card with neon glow border */
+.gamer-card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 1rem;
+  box-shadow: 0 0 22px var(--card-glow), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  transition: border-color 0.25s, box-shadow 0.25s, transform 0.2s;
+}
+
+.gamer-card:hover {
+  border-color: rgba(249, 115, 22, 0.38);
+  box-shadow: 0 0 32px rgba(249, 115, 22, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+/* Loading shimmer */
+.shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.04) 25%,
+    rgba(255, 255, 255, 0.08) 50%,
+    rgba(255, 255, 255, 0.04) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+/* Position badge colors for ranking */
+.rank-1 { color: #f59e0b; text-shadow: 0 0 12px rgba(245, 158, 11, 0.7); }
+.rank-2 { color: #94a3b8; text-shadow: 0 0 10px rgba(148, 163, 184, 0.5); }
+.rank-3 { color: #b45309; text-shadow: 0 0 10px rgba(180, 83, 9, 0.5); }

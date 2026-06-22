@@ -14,6 +14,7 @@ import {
   TrendingUp,
   Star,
   ChevronRight,
+  Flame,
 } from "lucide-react";
 
 interface PoolItem {
@@ -46,16 +47,16 @@ export default function PoolsPage() {
   if (loading) return <PageSpinner label="Carregando bolões..." />;
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col">
+    <div className="min-h-screen bg-[#060611] flex flex-col">
       <UserNavbar
         userName={session?.user?.name}
         userRole={session?.user?.role as "User" | "Admin" | undefined}
       />
 
       <main className="flex-1 max-w-2xl mx-auto w-full px-4 py-6">
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between mb-6 animate-slide-up">
           <div>
-            <h1 className="text-2xl font-black text-slate-900">Meus Bolões</h1>
+            <h1 className="text-2xl font-black text-slate-100 font-display tracking-wide">Meus Bolões</h1>
             <p className="text-sm text-slate-500 mt-0.5">
               {pools.length} bolão{pools.length !== 1 ? "ns" : ""} encontrado{pools.length !== 1 ? "s" : ""}
             </p>
@@ -94,53 +95,61 @@ export default function PoolsPage() {
           />
         ) : (
           <div className="flex flex-col gap-3">
-            {pools.map((item) => (
+            {pools.map((item, i) => (
               <Link key={item.id} href={`/dashboard/pools/${item.pool.id}`}>
-                <div className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm hover:shadow-md transition-shadow active:scale-[0.99]">
+                <div
+                  className="bg-[#0d0d1e] rounded-2xl p-4 border border-orange-500/15 hover:border-orange-500/35 hover:shadow-[0_0_24px_rgba(249,115,22,0.1)] transition-all duration-200 active:scale-[0.99] animate-slide-up"
+                  style={{ animationDelay: `${i * 60}ms` }}
+                >
                   <div className="flex items-start justify-between gap-3">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <h2 className="font-bold text-slate-900 truncate">
-                          {item.pool.name}
-                        </h2>
-                        {item.role === "Owner" && (
-                          <span className="shrink-0 bg-orange-100 text-orange-600 text-xs font-bold px-2 py-0.5 rounded-full">
-                            Dono
-                          </span>
-                        )}
-                        {item.pool.status !== "Active" && (
-                          <span className="shrink-0 bg-slate-100 text-slate-500 text-xs font-medium px-2 py-0.5 rounded-full">
-                            {item.pool.status === "Finished" ? "Encerrado" : "Arquivado"}
-                          </span>
-                        )}
+                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                      <div className="w-10 h-10 bg-orange-500/15 border border-orange-500/25 rounded-xl flex items-center justify-center shrink-0">
+                        <Flame className="h-5 w-5 text-orange-400" />
                       </div>
-                      {item.pool.description && (
-                        <p className="text-sm text-slate-500 truncate">
-                          {item.pool.description}
-                        </p>
-                      )}
-                      <div className="flex items-center gap-4 mt-2">
-                        <span className="flex items-center gap-1 text-sm text-slate-500">
-                          <Users className="h-3.5 w-3.5" />
-                          {item.pool.participantCount} participante{item.pool.participantCount !== 1 ? "s" : ""}
-                        </span>
-                        {item.pool.myPosition > 0 && (
-                          <span className="flex items-center gap-1 text-sm text-slate-500">
-                            <TrendingUp className="h-3.5 w-3.5" />
-                            {item.pool.myPosition}º lugar
-                          </span>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-0.5">
+                          <h2 className="font-bold text-slate-100 truncate">
+                            {item.pool.name}
+                          </h2>
+                          {item.role === "Owner" && (
+                            <span className="shrink-0 bg-orange-500/15 border border-orange-500/25 text-orange-400 text-xs font-bold px-2 py-0.5 rounded-full">
+                              Dono
+                            </span>
+                          )}
+                          {item.pool.status !== "Active" && (
+                            <span className="shrink-0 bg-white/8 text-slate-400 text-xs font-medium px-2 py-0.5 rounded-full">
+                              {item.pool.status === "Finished" ? "Encerrado" : "Arquivado"}
+                            </span>
+                          )}
+                        </div>
+                        {item.pool.description && (
+                          <p className="text-sm text-slate-500 truncate">
+                            {item.pool.description}
+                          </p>
                         )}
+                        <div className="flex items-center gap-4 mt-1.5">
+                          <span className="flex items-center gap-1 text-xs text-slate-500">
+                            <Users className="h-3.5 w-3.5" />
+                            {item.pool.participantCount} participante{item.pool.participantCount !== 1 ? "s" : ""}
+                          </span>
+                          {item.pool.myPosition > 0 && (
+                            <span className="flex items-center gap-1 text-xs text-slate-500">
+                              <TrendingUp className="h-3.5 w-3.5" />
+                              {item.pool.myPosition}º lugar
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
                     <div className="flex flex-col items-end gap-1 shrink-0">
                       <div className="flex items-center gap-1">
-                        <Star className="h-4 w-4 text-amber-500" />
-                        <span className="font-black text-xl text-slate-900">
+                        <Star className="h-4 w-4 text-amber-400" style={{ filter: "drop-shadow(0 0 4px rgba(245,158,11,0.5))" }} />
+                        <span className="font-black text-xl text-white font-display">
                           {item.totalPoints}
                         </span>
                       </div>
-                      <span className="text-xs text-slate-400">pts</span>
-                      <ChevronRight className="h-4 w-4 text-slate-300 mt-1" />
+                      <span className="text-xs text-slate-500">pts</span>
+                      <ChevronRight className="h-4 w-4 text-slate-600 mt-1" />
                     </div>
                   </div>
                 </div>
@@ -151,9 +160,9 @@ export default function PoolsPage() {
 
         {pools.length > 0 && (
           <div className="mt-4 flex items-center justify-center">
-            <div className="flex items-center gap-2 bg-slate-100 rounded-full px-3 py-1.5">
-              <Trophy className="h-3.5 w-3.5 text-amber-500" />
-              <span className="text-xs text-slate-600 font-medium">
+            <div className="flex items-center gap-2 bg-amber-500/10 border border-amber-500/20 rounded-full px-3 py-1.5">
+              <Trophy className="h-3.5 w-3.5 text-amber-400" style={{ filter: "drop-shadow(0 0 4px rgba(245,158,11,0.5))" }} />
+              <span className="text-xs text-amber-400 font-medium">
                 {pools.reduce((s, p) => s + p.totalPoints, 0)} pontos no total
               </span>
             </div>

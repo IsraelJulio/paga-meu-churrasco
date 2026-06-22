@@ -1,5 +1,6 @@
-export { default } from "next-auth/middleware";
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 
-export const config = {
-  matcher: ["/dashboard/:path*", "/admin/:path*"],
-};
+export function middleware(_request: NextRequest) {
+  return NextResponse.next();
+}

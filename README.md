@@ -6,7 +6,7 @@ Plataforma de bolão recreativo entre amigos para palpites esportivos. Sem dinhe
 
 - **Next.js 16** (App Router + TypeScript)
 - **Tailwind CSS v4** (mobile-first)
-- **Prisma 5** + **SQLite** (banco local)
+- **Prisma 5** + **PostgreSQL** (Railway)
 - **NextAuth.js v4** (autenticação com JWT)
 - **bcryptjs** (hash de senhas)
 - **Sonner** (notificações toast)
@@ -23,8 +23,16 @@ Plataforma de bolão recreativo entre amigos para palpites esportivos. Sem dinhe
 ```bash
 # 1. Instalar dependências
 npm install
+```
 
-# 2. Criar o banco de dados e rodar migrações
+Crie o arquivo `.env` na raiz com a URL pública do seu banco PostgreSQL (Railway):
+
+```
+DATABASE_URL="postgresql://postgres:SENHA@host.proxy.rlwy.net:PORTA/railway"
+```
+
+```bash
+# 2. Rodar migrações no banco
 npx prisma migrate dev --name init
 
 # 3. Popular com dados de teste
@@ -182,11 +190,89 @@ src/__tests__/
 
 ## Variáveis de ambiente
 
-Arquivo `.env.local`:
+Arquivo `.env` (lido pelo Prisma CLI):
 ```
-DATABASE_URL="file:./dev.db"
+DATABASE_URL="postgresql://postgres:SENHA@host.proxy.rlwy.net:PORTA/railway"
+```
+
+Arquivo `.env.local` (lido pelo Next.js em dev):
+```
+DATABASE_URL="postgresql://postgres:SENHA@host.proxy.rlwy.net:PORTA/railway"
 NEXTAUTH_SECRET="sua-chave-secreta-aqui"
 NEXTAUTH_URL="http://localhost:3000"
+```
+
+> O Prisma lê apenas `.env`. O Next.js em desenvolvimento lê `.env.local`. Mantenha os dois com a mesma `DATABASE_URL`.
+
+## Deploy na Vercel
+
+### Pré-requisitos
+
+- Banco PostgreSQL provisionado no [Railway](https://railway.app) (ou outro provider)
+- Repositório no GitHub conectado à Vercel
+
+### Passo a passo
+
+**1. Conectar o repositório**
+
+No painel da Vercel, clique em **Add New → Project** e importe o repositório do GitHub.
+
+**2. Configurar variáveis de ambiente**
+
+Na tela de configuração (ou em **Settings → Environment Variables**), adicione:
+
+| Variável | Valor |
+|---|---|
+| `DATABASE_URL` | URL pública do Railway (ex: `postgresql://postgres:SENHA@host.proxy.rlwy.net:PORTA/railway`) |
+| `NEXTAUTH_SECRET` | String aleatória segura (gere com `openssl rand -base64 32`) |
+| `NEXTAUTH_URL` | URL do seu domínio na Vercel (ex: `https://meu-app.vercel.app`) |
+
+> Não use a URL interna `postgres.railway.internal` — ela só funciona dentro da rede privada do Railway. Use sempre a URL pública.
+
+**3. Configurar o comando de build**
+
+A Vercel detecta Next.js automaticamente. Verifique em **Settings → General → Build & Development Settings** que o build command é:
+
+```
+npx prisma generate && next build
+```
+
+Isso garante que o Prisma Client seja regenerado antes de cada build.
+
+**4. Fazer deploy**
+
+Clique em **Deploy**. A Vercel vai:
+1. Instalar dependências (`npm install`)
+2. Gerar o Prisma Client (`prisma generate`)
+3. Fazer o build do Next.js (`next build`)
+
+**5. Rodar migrações (primeira vez)**
+
+As migrações **não rodam automaticamente** no deploy. Rode uma vez localmente apontando para o banco de produção:
+
+```bash
+# Garanta que .env tem a DATABASE_URL de produção
+npx prisma migrate deploy
+```
+
+Ou use `npx prisma db push` para aplicar o schema sem histórico de migrations.
+
+**6. Popular dados iniciais (opcional)**
+
+```bash
+npm run db:seed
+```
+
+### Deploys futuros
+
+Para novas migrations após mudanças no schema:
+
+```bash
+# Em desenvolvimento
+npx prisma migrate dev --name nome_da_migration
+
+# Aplicar em produção (antes do deploy)
+npx prisma migrate deploy
 ```
 
 ## O que está implementado

@@ -1,6 +1,6 @@
 # Paga meu Churrasco
 
-Plataforma de bolão recreativo entre amigos para palpites esportivos. Sem dinheiro real — quem perder paga o churrasco!
+Plataforma de bolão entre amigos para palpites esportivos. Sem dinheiro real — quem perder paga o churrasco!
 
 ## Stack
 

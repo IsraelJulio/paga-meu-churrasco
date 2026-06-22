@@ -39,7 +39,7 @@ export default function NewMatchPage() {
     try {
       const res = await fetch("/api/matches", {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, groupId: form.groupId || null, stadiumId: form.stadiumId || null, roundId: form.roundId || null, homeScore: form.homeScore !== "" ? Number(form.homeScore) : null, awayScore: form.awayScore !== "" ? Number(form.awayScore) : null }),
+        body: JSON.stringify({ ...form, matchDate: form.matchDate ? new Date(form.matchDate).toISOString() : form.matchDate, groupId: form.groupId || null, stadiumId: form.stadiumId || null, roundId: form.roundId || null, homeScore: form.homeScore !== "" ? Number(form.homeScore) : null, awayScore: form.awayScore !== "" ? Number(form.awayScore) : null }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);

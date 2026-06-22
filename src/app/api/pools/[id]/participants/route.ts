@@ -21,7 +21,7 @@ export async function GET(_: NextRequest, { params }: { params: Promise<{ id: st
   const participants = await prisma.poolParticipant.findMany({
     where: { poolId },
     include: {
-      user: { select: { id: true, name: true, email: true } },
+      user: { select: { id: true, name: true, login: true } },
     },
     orderBy: [
       { totalPoints: "desc" },

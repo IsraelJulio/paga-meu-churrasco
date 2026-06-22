@@ -9,6 +9,7 @@ async function main() {
   // Users
   const adminHash = await bcrypt.hash("admin123", 12);
   const userHash = await bcrypt.hash("user123", 12);
+  const user2Hash = await bcrypt.hash("user456", 12);
 
   const admin = await prisma.user.upsert({
     where: { email: "admin@pagameuchurrasco.com" },
@@ -22,7 +23,13 @@ async function main() {
     create: { name: "Usuário Teste", email: "user@pagameuchurrasco.com", passwordHash: userHash, role: "User" },
   });
 
-  console.log(`✅ Usuários criados: ${admin.email}, ${user.email}`);
+  const user2 = await prisma.user.upsert({
+    where: { email: "craque@pagameuchurrasco.com" },
+    update: {},
+    create: { name: "Craque do Palpite", email: "craque@pagameuchurrasco.com", passwordHash: user2Hash, role: "User" },
+  });
+
+  console.log(`✅ Usuários criados: ${admin.email}, ${user.email}, ${user2.email}`);
 
   // Groups
   const groupA = await prisma.group.upsert({ where: { id: "group-a" }, update: {}, create: { id: "group-a", name: "Grupo A", description: "Brasil, Noruega, Costa do Marfim, México" } });
@@ -76,29 +83,83 @@ async function main() {
 
   console.log(`✅ ${stadiums.length} estádios criados`);
 
-  // Matches
-  const matchDate1 = new Date("2026-06-14T18:00:00Z");
-  const matchDate2 = new Date("2026-06-15T21:00:00Z");
+  // Rounds
+  const rounds = [
+    { id: "round-1", name: "Rodada 1 – Fase de Grupos", description: "Primeira rodada da fase de grupos", phase: "GroupStage", startDate: new Date("2026-06-14T00:00:00Z"), endDate: new Date("2026-06-17T23:59:59Z") },
+    { id: "round-2", name: "Rodada 2 – Fase de Grupos", description: "Segunda rodada da fase de grupos", phase: "GroupStage", startDate: new Date("2026-06-18T00:00:00Z"), endDate: new Date("2026-06-22T23:59:59Z") },
+  ];
 
-  const existingMatch = await prisma.match.findFirst({ where: { homeTeamId: "team-bra", awayTeamId: "team-arg" } });
-  if (!existingMatch) {
-    await prisma.match.create({
-      data: { homeTeamId: "team-bra", awayTeamId: "team-arg", groupId: null, stadiumId: "stadium-maracana", matchDate: matchDate1, status: "Scheduled", phase: "GroupStage" },
-    });
-    await prisma.match.create({
-      data: { homeTeamId: "team-fra", awayTeamId: "team-esp", groupId: null, stadiumId: "stadium-mineirao", matchDate: matchDate2, status: "Scheduled", phase: "GroupStage" },
-    });
+  for (const r of rounds) {
+    await prisma.round.upsert({ where: { id: r.id }, update: {}, create: r });
   }
 
-  console.log(`✅ Partidas criadas`);
+  console.log(`✅ Rodadas criadas`);
+
+  // Matches
+  const existingMatches = await prisma.match.findMany({ where: { homeTeamId: { in: ["team-bra", "team-fra"] } } });
+
+  let matchBraArg: { id: string } | null = null;
+  let matchFraEsp: { id: string } | null = null;
+  let matchBraPor: { id: string } | null = null;
+
+  if (existingMatches.length === 0) {
+    matchBraArg = await prisma.match.create({
+      data: {
+        homeTeamId: "team-bra", awayTeamId: "team-arg",
+        groupId: "group-a", stadiumId: "stadium-maracana",
+        roundId: "round-1",
+        matchDate: new Date("2026-06-14T18:00:00Z"),
+        status: "Finished", phase: "GroupStage",
+        homeScore: 2, awayScore: 1,
+      },
+    });
+    matchFraEsp = await prisma.match.create({
+      data: {
+        homeTeamId: "team-fra", awayTeamId: "team-esp",
+        groupId: null, stadiumId: "stadium-mineirao",
+        roundId: "round-1",
+        matchDate: new Date("2026-06-15T21:00:00Z"),
+        status: "Finished", phase: "GroupStage",
+        homeScore: 1, awayScore: 1,
+      },
+    });
+    matchBraPor = await prisma.match.create({
+      data: {
+        homeTeamId: "team-bra", awayTeamId: "team-por",
+        groupId: "group-a", stadiumId: "stadium-morumbi",
+        roundId: "round-2",
+        matchDate: new Date("2026-06-20T20:00:00Z"),
+        status: "Scheduled", phase: "GroupStage",
+      },
+    });
+    await prisma.match.create({
+      data: {
+        homeTeamId: "team-arg", awayTeamId: "team-ale",
+        groupId: "group-b", stadiumId: "stadium-maracana",
+        roundId: "round-2",
+        matchDate: new Date("2026-06-21T20:00:00Z"),
+        status: "Scheduled", phase: "GroupStage",
+      },
+    });
+  } else {
+    matchBraArg = existingMatches.find((m) => m.homeTeamId === "team-bra") ?? null;
+    matchFraEsp = existingMatches.find((m) => m.homeTeamId === "team-fra") ?? null;
+  }
+
+  console.log(`✅ Partidas criadas/encontradas`);
 
   // Badges
   const badges = [
-    { id: "badge-craque", name: "Craque dos Palpites", description: "Acerte 5 placares exatos", icon: "🎯", category: "Precisão", points: 100, isActive: true },
-    { id: "badge-sequencia", name: "Sequência Imbatível", description: "Acerte 3 resultados seguidos", icon: "🔥", category: "Sequência", points: 50, isActive: true },
-    { id: "badge-primeiro", name: "Primeiro Palpite", description: "Faça seu primeiro palpite", icon: "⚽", category: "Conquista", points: 10, isActive: true },
-    { id: "badge-adivinho", name: "O Adivinho", description: "Acerte o placar exato de uma semifinal", icon: "🔮", category: "Especial", points: 200, isActive: true },
-    { id: "badge-churrasco", name: "Mestre do Churrasco", description: "Ganhe um bolão completo", icon: "🥩", category: "Conquista", points: 500, isActive: true },
+    { id: "badge-first-correct", name: "Primeiro Acerto", description: "Acertou o primeiro resultado no bolão", icon: "⚽", category: "Iniciante", condition: "FIRST_CORRECT_RESULT", points: 10, isActive: true },
+    { id: "badge-first-exact", name: "Na Mosca", description: "Acertou o primeiro placar exato", icon: "🎯", category: "Precisão", condition: "FIRST_EXACT_SCORE", points: 30, isActive: true },
+    { id: "badge-five-exact", name: "Atirador de Elite", description: "Acertou 5 placares exatos", icon: "🏹", category: "Precisão", condition: "FIVE_EXACT_SCORES", points: 100, isActive: true },
+    { id: "badge-ten-exact", name: "Sniper", description: "Acertou 10 placares exatos", icon: "🔭", category: "Precisão", condition: "TEN_EXACT_SCORES", points: 250, isActive: true },
+    { id: "badge-streak-5", name: "Em Chamas", description: "Acertou resultado em 5 jogos seguidos", icon: "🔥", category: "Sequência", condition: "FIVE_CORRECT_RESULTS_STREAK", points: 50, isActive: true },
+    { id: "badge-streak-10", name: "Imparável", description: "Acertou resultado em 10 jogos seguidos", icon: "⚡", category: "Sequência", condition: "TEN_CORRECT_RESULTS_STREAK", points: 150, isActive: true },
+    { id: "badge-double-hit", name: "Corajoso", description: "Acertou uma partida escolhida para valer o dobro", icon: "💪", category: "Ousadia", condition: "FIRST_DOUBLE_PICK_HIT", points: 40, isActive: true },
+    { id: "badge-three-doubles", name: "All In", description: "Acertou 3 partidas valendo o dobro", icon: "🃏", category: "Ousadia", condition: "THREE_DOUBLE_PICK_HITS", points: 120, isActive: true },
+    { id: "badge-round-winner", name: "Rei da Rodada", description: "Terminou uma rodada em primeiro lugar", icon: "👑", category: "Liderança", condition: "ROUND_WINNER", points: 80, isActive: true },
+    { id: "badge-first-leader", name: "Líder", description: "Assumiu a liderança do bolão pela primeira vez", icon: "🏆", category: "Liderança", condition: "FIRST_TIME_LEADER", points: 60, isActive: true },
   ];
 
   for (const b of badges) {
@@ -106,10 +167,87 @@ async function main() {
   }
 
   console.log(`✅ ${badges.length} conquistas criadas`);
+
+  // Example pool
+  const existingPool = await prisma.pool.findFirst({ where: { name: "Bolão dos Brothers" } });
+  let pool: { id: string } | null = existingPool;
+
+  if (!existingPool) {
+    pool = await prisma.pool.create({
+      data: {
+        name: "Bolão dos Brothers",
+        description: "O bolão oficial da galera. Perdedor paga o churrasco! 🥩",
+        inviteCode: "BROTHER",
+        ownerId: user.id,
+        scoringSettings: { create: {} },
+        participants: {
+          create: [
+            { userId: user.id, role: "Owner" },
+            { userId: user2.id, role: "Member" },
+          ],
+        },
+      },
+    });
+
+    console.log(`✅ Bolão de exemplo criado: ${pool.id}`);
+
+    // Predictions for finished matches
+    if (matchBraArg && pool) {
+      // user: guessed 2x1 (exact!) — actual 2x1
+      await prisma.prediction.create({
+        data: {
+          poolId: pool.id,
+          userId: user.id,
+          matchId: matchBraArg.id,
+          predictedHomeScore: 2,
+          predictedAwayScore: 1,
+        },
+      });
+      // user2: guessed 1x0 (correct winner, different score)
+      await prisma.prediction.create({
+        data: {
+          poolId: pool.id,
+          userId: user2.id,
+          matchId: matchBraArg.id,
+          predictedHomeScore: 1,
+          predictedAwayScore: 0,
+        },
+      });
+    }
+
+    if (matchFraEsp && pool) {
+      // user: guessed 0x0 (correct — draw, same diff=0, same total=2)
+      await prisma.prediction.create({
+        data: {
+          poolId: pool.id,
+          userId: user.id,
+          matchId: matchFraEsp.id,
+          predictedHomeScore: 0,
+          predictedAwayScore: 0,
+        },
+      });
+      // user2: guessed 2x1 (wrong — predicted home win, was draw)
+      await prisma.prediction.create({
+        data: {
+          poolId: pool.id,
+          userId: user2.id,
+          matchId: matchFraEsp.id,
+          predictedHomeScore: 2,
+          predictedAwayScore: 1,
+        },
+      });
+    }
+
+    console.log(`✅ Palpites de exemplo criados`);
+  }
+
   console.log("\n🎉 Seed concluído com sucesso!");
   console.log("\n📋 Credenciais de acesso:");
-  console.log("   Admin: admin@pagameuchurrasco.com / admin123");
-  console.log("   User:  user@pagameuchurrasco.com / user123");
+  console.log("   Admin:  admin@pagameuchurrasco.com / admin123");
+  console.log("   User:   user@pagameuchurrasco.com / user123");
+  console.log("   User2:  craque@pagameuchurrasco.com / user456");
+  console.log("\n💡 Para calcular pontuações do bolão de exemplo:");
+  console.log("   Acesse /admin/pools e clique em 'Recalcular Pontuação'");
 }
 
 main()

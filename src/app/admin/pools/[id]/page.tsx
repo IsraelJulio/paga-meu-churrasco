@@ -14,7 +14,7 @@ interface Participant {
   exactScores: number;
   correctResults: number;
   joinedAt: string;
-  user: { id: string; name: string; email: string };
+  user: { id: string; name: string; login: string };
 }
 
 interface Pool {
@@ -134,7 +134,7 @@ export default function AdminPoolDetailPage({ params }: { params: Promise<{ id: 
                     <span className="font-semibold text-slate-900 truncate">{p.user.name}</span>
                     {p.role === "Owner" && <Crown className="h-3.5 w-3.5 text-amber-500 shrink-0" />}
                   </div>
-                  <p className="text-xs text-slate-400">{p.user.email}</p>
+                  <p className="text-xs text-slate-400">{p.user.login}</p>
                   <div className="flex gap-3 mt-0.5 text-xs text-slate-500">
                     <span>{p.correctResults} acertos</span>
                     <span>{p.exactScores} exatos</span>

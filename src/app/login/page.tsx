@@ -3,14 +3,14 @@ import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Flame, Mail, Lock, Eye, EyeOff } from "lucide-react";
+import { Flame, User, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 
 export default function LoginPage() {
   const router = useRouter();
-  const [email, setEmail] = useState("");
+  const [login, setLogin] = useState("");
   const [password, setPassword] = useState("");
   const [showPass, setShowPass] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -23,13 +23,13 @@ export default function LoginPage() {
 
     try {
       const result = await signIn("credentials", {
-        email,
+        login,
         password,
         redirect: false,
       });
 
       if (result?.error) {
-        setError("E-mail ou senha incorretos.");
+        setError("Login ou senha incorretos.");
         return;
       }
 
@@ -75,15 +75,15 @@ export default function LoginPage() {
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             <div className="relative">
               <Input
-                label="E-mail"
-                type="email"
-                placeholder="seu@email.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                label="Login"
+                type="text"
+                placeholder="Seu login"
+                value={login}
+                onChange={(e) => setLogin(e.target.value)}
                 required
-                autoComplete="email"
+                autoComplete="username"
               />
-              <Mail className="absolute right-3 top-9 h-4 w-4 text-slate-400" />
+              <User className="absolute right-3 top-9 h-4 w-4 text-slate-400" />
             </div>
 
             <div className="relative">
@@ -138,13 +138,13 @@ export default function LoginPage() {
         {/* Test credentials hint */}
         <div className="mt-4 bg-white/5 border border-white/10 rounded-2xl p-4 text-xs text-slate-400">
           <p className="font-semibold text-slate-300 mb-2">
-            👤 Credenciais de teste:
+            Credenciais de teste:
           </p>
           <p>
-            Admin: <span className="text-orange-300">admin@pagameuchurrasco.com</span> / admin123
+            Admin: <span className="text-orange-300">admin</span> / admin123
           </p>
           <p>
-            Usuário: <span className="text-orange-300">user@pagameuchurrasco.com</span> / user123
+            Usuário: <span className="text-orange-300">user</span> / user123
           </p>
         </div>
 

@@ -11,7 +11,7 @@ export async function GET() {
 
   const pools = await prisma.pool.findMany({
     include: {
-      owner: { select: { id: true, name: true, email: true } },
+      owner: { select: { id: true, name: true, login: true } },
       _count: { select: { participants: true, predictions: true } },
     },
     orderBy: { createdAt: "desc" },

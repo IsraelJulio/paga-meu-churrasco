@@ -16,7 +16,7 @@ export async function GET(_: NextRequest, { params }: { params: Promise<{ id: st
       owner: { select: { id: true, name: true } },
       scoringSettings: true,
       participants: {
-        include: { user: { select: { id: true, name: true, email: true } } },
+        include: { user: { select: { id: true, name: true, login: true } } },
         orderBy: [{ totalPoints: "desc" }, { joinedAt: "asc" }],
       },
       _count: { select: { predictions: true, predictionScores: true } },

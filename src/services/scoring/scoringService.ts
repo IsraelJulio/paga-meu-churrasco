@@ -27,7 +27,8 @@ export function calculateScore(
   const isCorrectResult = predictedResult === actualResult;
   if (isCorrectResult) {
     resultPoints = settings.correctResultPoints;
-    parts.push(`Acertou vencedor (+${resultPoints})`);
+    const resultLabel = actualResult === "draw" ? "Acertou o empate" : "Acertou vencedor";
+    parts.push(`${resultLabel} (+${resultPoints})`);
   }
 
   const predictedDiff = predictedHome - predictedAway;

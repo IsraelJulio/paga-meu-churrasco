@@ -14,8 +14,8 @@ export async function GET(req: NextRequest) {
       ...(phase ? { phase } : {}),
     },
     include: {
-      homeTeam: { select: { id: true, name: true, code: true } },
-      awayTeam: { select: { id: true, name: true, code: true } },
+      homeTeam: { select: { id: true, name: true, code: true, flagUrl: true, primaryColor: true } },
+      awayTeam: { select: { id: true, name: true, code: true, flagUrl: true, primaryColor: true } },
       group: { select: { id: true, name: true } },
       stadium: { select: { id: true, name: true, city: true } },
     },

@@ -7,9 +7,10 @@ import { Button } from "@/components/ui/button";
 import { PageSpinner } from "@/components/ui/spinner";
 import { Dialog } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { ChevronLeft, Crown, Lock, CheckCircle, Clock } from "lucide-react";
+import { ChevronLeft, Crown, Lock, CheckCircle, Clock, AlertTriangle } from "lucide-react";
 import { MATCH_STATUS_LABELS, MATCH_PHASE_LABELS } from "@/types";
 import { formatDateTime } from "@/lib/utils";
+import { TeamFlag } from "@/components/ui/team-flag";
 
 interface MatchData {
   id: string;
@@ -18,9 +19,9 @@ interface MatchData {
   phase: string;
   homeScore?: number | null;
   awayScore?: number | null;
-  homeTeam: { id: string; name: string; code: string };
-  awayTeam: { id: string; name: string; code: string };
-  round?: { id: string; name: string; phase: string } | null;
+  homeTeam: { id: string; name: string; code: string; flagUrl?: string | null; primaryColor?: string | null };
+  awayTeam: { id: string; name: string; code: string; flagUrl?: string | null; primaryColor?: string | null };
+  round?: { id: string; name: string; phase: string; startDate?: string | null; createdAt?: string } | null;
 }
 
 interface PredictionData {
@@ -46,6 +47,7 @@ interface PredictionItem {
 type GroupedRound = {
   key: string;
   label: string;
+  sortDate: string;
   items: PredictionItem[];
 };
 
@@ -53,17 +55,44 @@ function groupByRound(items: PredictionItem[]): GroupedRound[] {
   const map = new Map<string, GroupedRound>();
   for (const item of items) {
     const roundId = item.match.round?.id ?? "no-round";
-    const label = item.match.round?.name ?? MATCH_PHASE_LABELS[item.match.phase as keyof typeof MATCH_PHASE_LABELS] ?? item.match.phase;
+    const label =
+      item.match.round?.name ??
+      MATCH_PHASE_LABELS[item.match.phase as keyof typeof MATCH_PHASE_LABELS] ??
+      item.match.phase;
+    const sortDate =
+      item.match.round?.startDate ?? item.match.round?.createdAt ?? "";
     if (!map.has(roundId)) {
-      map.set(roundId, { key: roundId, label, items: [] });
+      map.set(roundId, { key: roundId, label, sortDate, items: [] });
     }
     map.get(roundId)!.items.push(item);
   }
   return Array.from(map.values());
 }
 
+function getCurrentRoundKey(groups: GroupedRound[]): string | null {
+  const roundGroups = groups.filter((g) => g.key !== "no-round");
+  if (roundGroups.length === 0) return null;
+  return [...roundGroups].sort((a, b) =>
+    b.sortDate.localeCompare(a.sortDate)
+  )[0].key;
+}
+
 function isMatchLocked(matchDate: string, status: string) {
   return status !== "Scheduled" || new Date() >= new Date(matchDate);
+}
+
+function hasUnsavedPredictions(
+  items: PredictionItem[],
+  inputs: Record<string, { home: string; away: string }>,
+  savedInputs: Record<string, { home: string; away: string }>
+): boolean {
+  return items.some((item) => {
+    if (isMatchLocked(item.match.matchDate, item.match.status)) return false;
+    const current = inputs[item.match.id];
+    if (!current || (current.home === "" && current.away === "")) return false;
+    const saved = savedInputs[item.match.id] ?? { home: "", away: "" };
+    return current.home !== saved.home || current.away !== saved.away;
+  });
 }
 
 function hasMissingDoublePick(items: PredictionItem[]): boolean {
@@ -87,7 +116,10 @@ export default function PredictionsPage({ params }: { params: Promise<{ id: stri
   const [savingMatch, setSavingMatch] = useState<string | null>(null);
   const [doublePickLoading, setDoublePickLoading] = useState<string | null>(null);
   const [inputs, setInputs] = useState<Record<string, { home: string; away: string }>>({});
+  const [savedInputs, setSavedInputs] = useState<Record<string, { home: string; away: string }>>({});
   const [showLeaveWarning, setShowLeaveWarning] = useState(false);
+  const [showUnsavedWarning, setShowUnsavedWarning] = useState(false);
+  const [activeTab, setActiveTab] = useState<"current" | "previous">("current");
 
   const load = useCallback(() => {
     fetch(`/api/pools/${poolId}/predictions`)
@@ -102,6 +134,7 @@ export default function PredictionsPage({ params }: { params: Promise<{ id: stri
           };
         }
         setInputs(init);
+        setSavedInputs(init);
       })
       .finally(() => setLoading(false));
   }, [poolId]);
@@ -110,17 +143,19 @@ export default function PredictionsPage({ params }: { params: Promise<{ id: stri
 
   useEffect(() => {
     function onBeforeUnload(e: BeforeUnloadEvent) {
-      if (hasMissingDoublePick(items)) {
+      if (hasUnsavedPredictions(items, inputs, savedInputs) || hasMissingDoublePick(items)) {
         e.preventDefault();
         e.returnValue = "";
       }
     }
     window.addEventListener("beforeunload", onBeforeUnload);
     return () => window.removeEventListener("beforeunload", onBeforeUnload);
-  }, [items]);
+  }, [items, inputs, savedInputs]);
 
   function handleBack() {
-    if (hasMissingDoublePick(items)) {
+    if (hasUnsavedPredictions(items, inputs, savedInputs)) {
+      setShowUnsavedWarning(true);
+    } else if (hasMissingDoublePick(items)) {
       setShowLeaveWarning(true);
     } else {
       router.push(`/dashboard/pools/${poolId}`);
@@ -181,6 +216,48 @@ export default function PredictionsPage({ params }: { params: Promise<{ id: stri
   if (loading) return <PageSpinner label="Carregando palpites..." />;
 
   const groups = groupByRound(items);
+  const currentRoundKey = getCurrentRoundKey(groups);
+  const currentGroups = groups.filter(
+    (g) => g.key === currentRoundKey || g.key === "no-round"
+  );
+  const previousGroups = groups
+    .filter((g) => g.key !== currentRoundKey && g.key !== "no-round")
+    .sort((a, b) => a.sortDate.localeCompare(b.sortDate));
+  const showTabs = previousGroups.length > 0;
+
+  function renderGroups(groupList: GroupedRound[], readonly = false) {
+    return groupList.map((group) => (
+      <div key={group.key} className="mb-6">
+        <div className="flex items-center gap-2 mb-3">
+          <div className="h-px flex-1 bg-slate-200" />
+          <span className="text-xs font-bold text-slate-500 uppercase tracking-wider px-2">
+            {group.label}
+          </span>
+          <div className="h-px flex-1 bg-slate-200" />
+        </div>
+        <div className="flex flex-col gap-3">
+          {group.items.map((item) => (
+            <MatchPredictionCard
+              key={item.match.id}
+              item={item}
+              inputs={inputs}
+              savingMatch={savingMatch}
+              doublePickLoading={doublePickLoading}
+              readonly={readonly}
+              onInputChange={(matchId, side, value) =>
+                setInputs((prev) => ({
+                  ...prev,
+                  [matchId]: { ...prev[matchId], [side]: value },
+                }))
+              }
+              onSave={savePrediction}
+              onToggleDouble={toggleDouble}
+            />
+          ))}
+        </div>
+      </div>
+    ));
+  }
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
@@ -203,44 +280,64 @@ export default function PredictionsPage({ params }: { params: Promise<{ id: stri
           Faça seus palpites e escolha uma partida por rodada para valer o dobro.
         </p>
 
+        {showTabs && (
+          <div className="flex gap-1 bg-slate-100 p-1 rounded-xl mb-5">
+            <button
+              onClick={() => setActiveTab("current")}
+              className={`flex-1 py-2 text-sm font-semibold rounded-lg transition-colors ${
+                activeTab === "current"
+                  ? "bg-white text-slate-900 shadow-sm"
+                  : "text-slate-500 hover:text-slate-700"
+              }`}
+            >
+              Rodada Atual
+            </button>
+            <button
+              onClick={() => setActiveTab("previous")}
+              className={`flex-1 py-2 text-sm font-semibold rounded-lg transition-colors ${
+                activeTab === "previous"
+                  ? "bg-white text-slate-900 shadow-sm"
+                  : "text-slate-500 hover:text-slate-700"
+              }`}
+            >
+              Rodadas Anteriores
+            </button>
+          </div>
+        )}
+
         {items.length === 0 && (
           <div className="bg-white rounded-2xl p-8 border border-slate-100 text-center">
             <p className="text-slate-500">Nenhuma partida disponível no momento.</p>
           </div>
         )}
 
-        {groups.map((group) => (
-          <div key={group.key} className="mb-6">
-            <div className="flex items-center gap-2 mb-3">
-              <div className="h-px flex-1 bg-slate-200" />
-              <span className="text-xs font-bold text-slate-500 uppercase tracking-wider px-2">
-                {group.label}
-              </span>
-              <div className="h-px flex-1 bg-slate-200" />
-            </div>
+        {(!showTabs || activeTab === "current") && renderGroups(currentGroups)}
 
-            <div className="flex flex-col gap-3">
-              {group.items.map((item) => (
-                <MatchPredictionCard
-                  key={item.match.id}
-                  item={item}
-                  inputs={inputs}
-                  savingMatch={savingMatch}
-                  doublePickLoading={doublePickLoading}
-                  onInputChange={(matchId, side, value) =>
-                    setInputs((prev) => ({
-                      ...prev,
-                      [matchId]: { ...prev[matchId], [side]: value },
-                    }))
-                  }
-                  onSave={savePrediction}
-                  onToggleDouble={toggleDouble}
-                />
-              ))}
-            </div>
-          </div>
-        ))}
+        {showTabs && activeTab === "previous" && renderGroups(previousGroups, true)}
       </main>
+
+      <Dialog
+        open={showUnsavedWarning}
+        onClose={() => setShowUnsavedWarning(false)}
+        title="Palpites não salvos!"
+      >
+        <div className="flex flex-col items-center text-center gap-4">
+          <div className="w-14 h-14 bg-red-100 rounded-2xl flex items-center justify-center">
+            <AlertTriangle className="h-7 w-7 text-red-500" />
+          </div>
+          <p className="text-slate-600">
+            Você preencheu palpites que ainda não foram salvos. Se sair agora, vai perder tudo!
+          </p>
+          <div className="flex gap-3 w-full mt-2">
+            <Button variant="ghost" className="flex-1" onClick={() => setShowUnsavedWarning(false)}>
+              Ficar e salvar
+            </Button>
+            <Button variant="primary" className="flex-1" onClick={() => router.push(`/dashboard/pools/${poolId}`)}>
+              Sair mesmo assim
+            </Button>
+          </div>
+        </div>
+      </Dialog>
 
       <Dialog
         open={showLeaveWarning}
@@ -273,6 +370,7 @@ function MatchPredictionCard({
   inputs,
   savingMatch,
   doublePickLoading,
+  readonly,
   onInputChange,
   onSave,
   onToggleDouble,
@@ -281,12 +379,13 @@ function MatchPredictionCard({
   inputs: Record<string, { home: string; away: string }>;
   savingMatch: string | null;
   doublePickLoading: string | null;
+  readonly?: boolean;
   onInputChange: (matchId: string, side: "home" | "away", value: string) => void;
   onSave: (matchId: string) => void;
   onToggleDouble: (matchId: string) => void;
 }) {
   const { match, prediction, isDouble } = item;
-  const locked = isMatchLocked(match.matchDate, match.status);
+  const locked = readonly || isMatchLocked(match.matchDate, match.status);
   const val = inputs[match.id] ?? { home: "", away: "" };
   const hasRound = match.round != null;
 
@@ -316,7 +415,8 @@ function MatchPredictionCard({
 
         {/* Teams + score */}
         <div className="flex items-center gap-2 mb-3">
-          <div className="flex-1 text-center">
+          <div className="flex-1 text-center flex flex-col items-center gap-1">
+            <TeamFlag flagUrl={match.homeTeam.flagUrl} code={match.homeTeam.code} primaryColor={match.homeTeam.primaryColor} size="md" />
             <div className="font-black text-xl text-slate-900">{match.homeTeam.code}</div>
             <div className="text-xs text-slate-500">{match.homeTeam.name}</div>
           </div>
@@ -329,7 +429,8 @@ function MatchPredictionCard({
             <div className="text-slate-400 font-bold text-sm shrink-0">vs</div>
           )}
 
-          <div className="flex-1 text-center">
+          <div className="flex-1 text-center flex flex-col items-center gap-1">
+            <TeamFlag flagUrl={match.awayTeam.flagUrl} code={match.awayTeam.code} primaryColor={match.awayTeam.primaryColor} size="md" />
             <div className="font-black text-xl text-slate-900">{match.awayTeam.code}</div>
             <div className="text-xs text-slate-500">{match.awayTeam.name}</div>
           </div>

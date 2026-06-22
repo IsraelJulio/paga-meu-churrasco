@@ -44,21 +44,22 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex flex-col items-center justify-center px-4 py-8">
-      {/* Background decoration */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-0 right-0 w-72 h-72 bg-orange-500/10 rounded-full blur-3xl" />
-        <div className="absolute bottom-0 left-0 w-72 h-72 bg-green-500/10 rounded-full blur-3xl" />
-      </div>
+    <div className="min-h-screen bg-[#060611] flex flex-col items-center justify-center px-4 py-8 relative overflow-hidden">
+      {/* Grid background */}
+      <div className="absolute inset-0 bg-[linear-gradient(rgba(249,115,22,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(249,115,22,0.03)_1px,transparent_1px)] bg-[size:48px_48px] pointer-events-none" />
 
-      <div className="relative w-full max-w-sm">
+      {/* Ambient glow spots */}
+      <div className="absolute top-0 right-0 w-96 h-96 bg-orange-500/8 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-0 left-0 w-80 h-80 bg-orange-600/6 rounded-full blur-3xl pointer-events-none" />
+
+      <div className="relative w-full max-w-sm animate-slide-up">
         {/* Logo */}
         <div className="text-center mb-8">
-          <Link href="/" className="inline-flex flex-col items-center gap-2">
-            <div className="w-16 h-16 bg-orange-500 rounded-2xl flex items-center justify-center shadow-lg shadow-orange-500/30">
+          <Link href="/" className="inline-flex flex-col items-center gap-3">
+            <div className="w-16 h-16 bg-orange-500 rounded-2xl flex items-center justify-center shadow-[0_0_30px_rgba(249,115,22,0.5)] gamer-glow">
               <Flame className="h-8 w-8 text-white" />
             </div>
-            <h1 className="text-2xl font-black text-white">
+            <h1 className="text-2xl font-black font-display text-white tracking-wide">
               Paga meu{" "}
               <span className="text-orange-400">Churrasco</span>
             </h1>
@@ -69,8 +70,8 @@ export default function LoginPage() {
         </div>
 
         {/* Card */}
-        <div className="bg-white rounded-3xl p-6 shadow-2xl">
-          <h2 className="text-xl font-black text-slate-900 mb-5">Entrar</h2>
+        <div className="bg-[#0d0d1e] border border-orange-500/20 rounded-3xl p-6 shadow-[0_0_40px_rgba(249,115,22,0.1)]">
+          <h2 className="text-xl font-black text-slate-100 mb-5 font-display tracking-wide">Entrar</h2>
 
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             <div className="relative">
@@ -83,7 +84,7 @@ export default function LoginPage() {
                 required
                 autoComplete="username"
               />
-              <User className="absolute right-3 top-9 h-4 w-4 text-slate-400" />
+              <User className="absolute right-3 top-9 h-4 w-4 text-slate-500" />
             </div>
 
             <div className="relative">
@@ -100,7 +101,7 @@ export default function LoginPage() {
               <button
                 type="button"
                 onClick={() => setShowPass(!showPass)}
-                className="absolute right-3 top-9 text-slate-400 hover:text-slate-600"
+                className="absolute right-3 top-9 text-slate-500 hover:text-slate-300 transition-colors"
               >
                 {showPass ? (
                   <EyeOff className="h-4 w-4" />
@@ -127,32 +128,13 @@ export default function LoginPage() {
               Não tem conta?{" "}
               <Link
                 href="/register"
-                className="text-orange-500 font-semibold hover:underline"
+                className="text-orange-400 font-semibold hover:text-orange-300 transition-colors"
               >
                 Criar agora
               </Link>
             </p>
           </div>
         </div>
-
-        {/* Test credentials hint */}
-        <div className="mt-4 bg-white/5 border border-white/10 rounded-2xl p-4 text-xs text-slate-400">
-          <p className="font-semibold text-slate-300 mb-2">
-            Credenciais de teste:
-          </p>
-          <p>
-            Admin: <span className="text-orange-300">admin</span> / admin123
-          </p>
-          <p>
-            Usuário: <span className="text-orange-300">user</span> / user123
-          </p>
-        </div>
-
-        <p className="text-center text-slate-600 text-sm mt-4">
-          <Link href="/" className="hover:text-slate-400 transition-colors">
-            ← Voltar para o início
-          </Link>
-        </p>
       </div>
     </div>
   );

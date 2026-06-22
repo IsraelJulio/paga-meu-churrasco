@@ -42,7 +42,7 @@ export default function NewPoolPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col">
+    <div className="min-h-screen bg-[#060611] flex flex-col">
       <UserNavbar
         userName={session?.user?.name}
         userRole={session?.user?.role as "User" | "Admin" | undefined}
@@ -51,24 +51,24 @@ export default function NewPoolPage() {
       <main className="flex-1 max-w-lg mx-auto w-full px-4 py-6">
         <Link
           href="/dashboard/pools"
-          className="flex items-center gap-1 text-sm text-slate-500 hover:text-slate-700 mb-5"
+          className="flex items-center gap-1 text-sm text-slate-500 hover:text-slate-300 mb-5 transition-colors"
         >
           <ChevronLeft className="h-4 w-4" />
           Meus Bolões
         </Link>
 
-        <div className="mb-6">
-          <div className="w-12 h-12 bg-orange-500 rounded-2xl flex items-center justify-center mb-3">
+        <div className="mb-6 animate-slide-up">
+          <div className="w-12 h-12 bg-orange-500 rounded-2xl flex items-center justify-center mb-3 shadow-[0_0_20px_rgba(249,115,22,0.5)]">
             <Flame className="h-6 w-6 text-white" />
           </div>
-          <h1 className="text-2xl font-black text-slate-900">Criar Bolão</h1>
-          <p className="text-sm text-slate-500 mt-1">
+          <h1 className="text-2xl font-black text-slate-100 font-display tracking-wide">Criar Bolão</h1>
+          <p className="text-sm text-slate-400 mt-1">
             Crie seu bolão e convide seus amigos para competir.
           </p>
         </div>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          <div className="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm flex flex-col gap-4">
+          <div className="bg-[#0d0d1e] rounded-2xl p-5 border border-orange-500/15 shadow-[0_0_20px_rgba(249,115,22,0.05)] flex flex-col gap-4">
             <Input
               label="Nome do bolão *"
               placeholder="Ex: Bolão dos Brothers"
@@ -87,9 +87,9 @@ export default function NewPoolPage() {
             />
           </div>
 
-          <div className="bg-amber-50 border border-amber-100 rounded-2xl p-4 text-sm text-amber-700">
+          <div className="bg-amber-500/8 border border-amber-500/20 rounded-2xl p-4 text-sm text-amber-400">
             <p className="font-semibold mb-1">Como funciona?</p>
-            <ul className="space-y-1 text-amber-600 list-disc list-inside">
+            <ul className="space-y-1 text-amber-400/80 list-disc list-inside">
               <li>Um código de convite único será gerado</li>
               <li>Compartilhe o código com seus amigos</li>
               <li>Cada um faz seus palpites nas partidas</li>

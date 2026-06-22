@@ -16,15 +16,17 @@ export default function NewMatchPage() {
   const [teams, setTeams] = useState<{ id: string; name: string }[]>([]);
   const [groups, setGroups] = useState<{ id: string; name: string }[]>([]);
   const [stadiums, setStadiums] = useState<{ id: string; name: string; city: string }[]>([]);
+  const [rounds, setRounds] = useState<{ id: string; name: string }[]>([]);
   const [loading, setLoading] = useState(false);
-  const [form, setForm] = useState({ homeTeamId: "", awayTeamId: "", groupId: "", stadiumId: "", matchDate: "", homeScore: "", awayScore: "", status: "Scheduled", phase: "GroupStage" });
+  const [form, setForm] = useState({ homeTeamId: "", awayTeamId: "", groupId: "", stadiumId: "", roundId: "", matchDate: "", homeScore: "", awayScore: "", status: "Scheduled", phase: "GroupStage" });
 
   useEffect(() => {
     Promise.all([
       fetch("/api/teams").then((r) => r.json()),
       fetch("/api/groups").then((r) => r.json()),
       fetch("/api/stadiums").then((r) => r.json()),
-    ]).then(([t, g, s]) => { setTeams(t); setGroups(g); setStadiums(s); });
+      fetch("/api/rounds").then((r) => r.json()),
+    ]).then(([t, g, s, r]) => { setTeams(t); setGroups(g); setStadiums(s); setRounds(r); });
   }, []);
 
   function set(field: string, value: string) { setForm((f) => ({ ...f, [field]: value })); }
@@ -37,7 +39,7 @@ export default function NewMatchPage() {
     try {
       const res = await fetch("/api/matches", {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, groupId: form.groupId || null, stadiumId: form.stadiumId || null, homeScore: form.homeScore !== "" ? Number(form.homeScore) : null, awayScore: form.awayScore !== "" ? Number(form.awayScore) : null }),
+        body: JSON.stringify({ ...form, groupId: form.groupId || null, stadiumId: form.stadiumId || null, roundId: form.roundId || null, homeScore: form.homeScore !== "" ? Number(form.homeScore) : null, awayScore: form.awayScore !== "" ? Number(form.awayScore) : null }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
@@ -71,6 +73,10 @@ export default function NewMatchPage() {
               {statuses.map((s) => <option key={s} value={s}>{s}</option>)}
             </Select>
           </div>
+          <Select label="Rodada (opcional)" value={form.roundId} onChange={(e) => set("roundId", e.target.value)}>
+            <option value="">— Sem rodada —</option>
+            {rounds.map((r) => <option key={r.id} value={r.id}>{r.name}</option>)}
+          </Select>
           <Select label="Grupo (opcional)" value={form.groupId} onChange={(e) => set("groupId", e.target.value)}>
             <option value="">—</option>
             {groups.map((g) => <option key={g.id} value={g.id}>{g.name}</option>)}

@@ -14,6 +14,7 @@ export async function GET(_: NextRequest, { params }: { params: Promise<{ id: st
       awayTeam: true,
       group: true,
       stadium: true,
+      round: true,
     },
   });
   if (!match) return NextResponse.json({ error: "Não encontrado" }, { status: 404 });
@@ -32,7 +33,17 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     if (data.homeScore !== undefined) data.homeScore = data.homeScore === "" ? null : Number(data.homeScore);
     if (data.awayScore !== undefined) data.awayScore = data.awayScore === "" ? null : Number(data.awayScore);
     const prevMatch = await prisma.match.findUnique({ where: { id }, select: { status: true } });
-    const match = await prisma.match.update({ where: { id }, data });
+    const match = await prisma.match.update({
+      where: { id },
+      data,
+      include: {
+        homeTeam: true,
+        awayTeam: true,
+        group: true,
+        stadium: true,
+        round: true,
+      },
+    });
 
     // Auto-calculate scores when match becomes Finished
     if (match.status === "Finished" && prevMatch?.status !== "Finished" && match.homeScore != null && match.awayScore != null) {

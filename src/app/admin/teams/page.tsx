@@ -11,12 +11,14 @@ import { PageSpinner } from "@/components/ui/spinner";
 import { PageHeader } from "@/components/admin/page-header";
 import { toast } from "sonner";
 import { JsonImportModal } from "@/components/import/json-import-modal";
+import { TeamFlag } from "@/components/ui/team-flag";
 
 interface Team {
   id: string;
   name: string;
   code: string;
   group?: string | null;
+  flagUrl?: string | null;
   primaryColor?: string | null;
 }
 
@@ -125,12 +127,7 @@ export default function TeamsPage() {
               >
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-3">
-                    <div
-                      className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold text-sm"
-                      style={{ backgroundColor: team.primaryColor || "#6366f1" }}
-                    >
-                      {team.code}
-                    </div>
+                    <TeamFlag flagUrl={team.flagUrl} code={team.code} primaryColor={team.primaryColor} size="md" />
                     <div>
                       <p className="font-bold text-slate-900">{team.name}</p>
                       <p className="text-xs text-slate-500">
@@ -188,12 +185,7 @@ export default function TeamsPage() {
                   <tr key={team.id} className="hover:bg-slate-50 transition-colors">
                     <td className="px-5 py-4">
                       <div className="flex items-center gap-3">
-                        <div
-                          className="w-9 h-9 rounded-lg flex items-center justify-center text-white font-bold text-xs"
-                          style={{ backgroundColor: team.primaryColor || "#6366f1" }}
-                        >
-                          {team.code}
-                        </div>
+                        <TeamFlag flagUrl={team.flagUrl} code={team.code} primaryColor={team.primaryColor} size="sm" />
                         <span className="font-medium text-slate-900">{team.name}</span>
                       </div>
                     </td>

@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import { MATCH_STATUS_LABELS, MATCH_PHASE_LABELS, MatchStatus, MatchPhase } from "@/types";
 import { JsonImportModal } from "@/components/import/json-import-modal";
 import { formatDateTime } from "@/lib/utils";
+import { TeamFlag } from "@/components/ui/team-flag";
 
 interface Match {
   id: string;
@@ -21,8 +22,8 @@ interface Match {
   phase: MatchPhase;
   homeScore?: number | null;
   awayScore?: number | null;
-  homeTeam: { id: string; name: string; code: string };
-  awayTeam: { id: string; name: string; code: string };
+  homeTeam: { id: string; name: string; code: string; flagUrl?: string | null; primaryColor?: string | null };
+  awayTeam: { id: string; name: string; code: string; flagUrl?: string | null; primaryColor?: string | null };
   stadium?: { name: string; city: string } | null;
 }
 
@@ -74,14 +75,16 @@ export default function MatchesPage() {
                 <span className="text-xs text-slate-400">{formatDateTime(m.matchDate)}</span>
               </div>
               <div className="flex items-center justify-center gap-4 mb-2">
-                <div className="text-center">
+                <div className="text-center flex flex-col items-center gap-1">
+                  <TeamFlag flagUrl={m.homeTeam.flagUrl} code={m.homeTeam.code} primaryColor={m.homeTeam.primaryColor} size="sm" />
                   <p className="font-black text-lg text-slate-900">{m.homeTeam.code}</p>
                   <p className="text-xs text-slate-500">{m.homeTeam.name}</p>
                 </div>
                 <div className="text-center px-4 py-1 bg-slate-900 text-white rounded-xl font-black text-xl min-w-[80px]">
                   {m.status === "Scheduled" ? "x" : `${m.homeScore ?? 0} - ${m.awayScore ?? 0}`}
                 </div>
-                <div className="text-center">
+                <div className="text-center flex flex-col items-center gap-1">
+                  <TeamFlag flagUrl={m.awayTeam.flagUrl} code={m.awayTeam.code} primaryColor={m.awayTeam.primaryColor} size="sm" />
                   <p className="font-black text-lg text-slate-900">{m.awayTeam.code}</p>
                   <p className="text-xs text-slate-500">{m.awayTeam.name}</p>
                 </div>

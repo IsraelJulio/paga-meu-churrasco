@@ -10,7 +10,7 @@ import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { PageSpinner } from "@/components/ui/spinner";
 import { PageHeader } from "@/components/admin/page-header";
 import { toast } from "sonner";
-import { Edit, Trash2 } from "lucide-react";
+import { Edit, Trash2, Zap } from "lucide-react";
 import { MATCH_STATUS_LABELS, MATCH_PHASE_LABELS, MatchStatus, MatchPhase } from "@/types";
 import { formatDateTime, formatDateTimeLocal } from "@/lib/utils";
 
@@ -44,6 +44,7 @@ export default function MatchDetailPage({ params }: { params: Promise<{ id: stri
   const [saving, setSaving] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [calculating, setCalculating] = useState(false);
   const [form, setForm] = useState({
     homeTeamId: "", awayTeamId: "", groupId: "", stadiumId: "", roundId: "",
     matchDate: "", homeScore: "", awayScore: "", status: "Scheduled", phase: "GroupStage",
@@ -108,6 +109,20 @@ export default function MatchDetailPage({ params }: { params: Promise<{ id: stri
     router.push("/admin/matches");
   }
 
+  async function handleCalculate() {
+    setCalculating(true);
+    try {
+      const res = await fetch(`/api/matches/${id}/calculate`, { method: "POST" });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      toast.success(`Pontuação gerada! ${data.processed} apostas calculadas.`);
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Erro ao calcular pontuação");
+    } finally {
+      setCalculating(false);
+    }
+  }
+
   if (loading) return <PageSpinner />;
   if (!match) return <div className="text-slate-500">Não encontrado.</div>;
 
@@ -138,6 +153,17 @@ export default function MatchDetailPage({ params }: { params: Promise<{ id: stri
                 <span className="text-sm font-semibold text-slate-900">{row.value}</span>
               </div>
             ))}
+            {match.status === "Finished" && (
+              <Button
+                variant="primary"
+                className="w-full mt-2"
+                loading={calculating}
+                onClick={handleCalculate}
+              >
+                <Zap className="h-4 w-4" />
+                Gerar pontuação
+              </Button>
+            )}
           </div>
         ) : (
           <form onSubmit={handleSave} className="flex flex-col gap-4">

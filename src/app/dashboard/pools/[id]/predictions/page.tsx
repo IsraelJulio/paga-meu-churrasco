@@ -1,12 +1,13 @@
 "use client";
 import { use, useEffect, useState, useCallback } from "react";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { UserNavbar } from "@/components/layout/user-navbar";
 import { Button } from "@/components/ui/button";
 import { PageSpinner } from "@/components/ui/spinner";
+import { Dialog } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { ChevronLeft, Zap, Lock, CheckCircle, Clock } from "lucide-react";
+import { ChevronLeft, Crown, Lock, CheckCircle, Clock } from "lucide-react";
 import { MATCH_STATUS_LABELS, MATCH_PHASE_LABELS } from "@/types";
 import { formatDateTime } from "@/lib/utils";
 
@@ -65,14 +66,28 @@ function isMatchLocked(matchDate: string, status: string) {
   return status !== "Scheduled" || new Date() >= new Date(matchDate);
 }
 
+function hasMissingDoublePick(items: PredictionItem[]): boolean {
+  const groups = groupByRound(items);
+  return groups.some((group) => {
+    if (group.key === "no-round") return false;
+    const hasUnlocked = group.items.some(
+      (item) => !isMatchLocked(item.match.matchDate, item.match.status)
+    );
+    const hasDouble = group.items.some((item) => item.isDouble);
+    return hasUnlocked && !hasDouble;
+  });
+}
+
 export default function PredictionsPage({ params }: { params: Promise<{ id: string }> }) {
   const { id: poolId } = use(params);
   const { data: session } = useSession();
+  const router = useRouter();
   const [items, setItems] = useState<PredictionItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [savingMatch, setSavingMatch] = useState<string | null>(null);
   const [doublePickLoading, setDoublePickLoading] = useState<string | null>(null);
   const [inputs, setInputs] = useState<Record<string, { home: string; away: string }>>({});
+  const [showLeaveWarning, setShowLeaveWarning] = useState(false);
 
   const load = useCallback(() => {
     fetch(`/api/pools/${poolId}/predictions`)
@@ -92,6 +107,25 @@ export default function PredictionsPage({ params }: { params: Promise<{ id: stri
   }, [poolId]);
 
   useEffect(() => { load(); }, [load]);
+
+  useEffect(() => {
+    function onBeforeUnload(e: BeforeUnloadEvent) {
+      if (hasMissingDoublePick(items)) {
+        e.preventDefault();
+        e.returnValue = "";
+      }
+    }
+    window.addEventListener("beforeunload", onBeforeUnload);
+    return () => window.removeEventListener("beforeunload", onBeforeUnload);
+  }, [items]);
+
+  function handleBack() {
+    if (hasMissingDoublePick(items)) {
+      setShowLeaveWarning(true);
+    } else {
+      router.push(`/dashboard/pools/${poolId}`);
+    }
+  }
 
   async function savePrediction(matchId: string) {
     const val = inputs[matchId];
@@ -156,13 +190,13 @@ export default function PredictionsPage({ params }: { params: Promise<{ id: stri
       />
 
       <main className="flex-1 max-w-2xl mx-auto w-full px-4 py-6">
-        <Link
-          href={`/dashboard/pools/${poolId}`}
+        <button
+          onClick={handleBack}
           className="flex items-center gap-1 text-sm text-slate-500 hover:text-slate-700 mb-4"
         >
           <ChevronLeft className="h-4 w-4" />
           Voltar ao bolão
-        </Link>
+        </button>
 
         <h1 className="text-2xl font-black text-slate-900 mb-1">Palpites</h1>
         <p className="text-sm text-slate-500 mb-5">
@@ -207,6 +241,29 @@ export default function PredictionsPage({ params }: { params: Promise<{ id: stri
           </div>
         ))}
       </main>
+
+      <Dialog
+        open={showLeaveWarning}
+        onClose={() => setShowLeaveWarning(false)}
+        title="Você esqueceu da coroa!"
+      >
+        <div className="flex flex-col items-center text-center gap-4">
+          <div className="w-14 h-14 bg-amber-100 rounded-2xl flex items-center justify-center">
+            <Crown className="h-7 w-7 text-amber-500" />
+          </div>
+          <p className="text-slate-600">
+            Você ainda não escolheu uma partida para valer o dobro em todas as rodadas. Não se esqueça de marcar sua favorita com a coroa!
+          </p>
+          <div className="flex gap-3 w-full mt-2">
+            <Button variant="ghost" className="flex-1" onClick={() => setShowLeaveWarning(false)}>
+              Ficar e escolher
+            </Button>
+            <Button variant="primary" className="flex-1" onClick={() => router.push(`/dashboard/pools/${poolId}`)}>
+              Sair mesmo assim
+            </Button>
+          </div>
+        </div>
+      </Dialog>
     </div>
   );
 }
@@ -241,10 +298,10 @@ function MatchPredictionCard({
   };
 
   return (
-    <div className={`bg-white rounded-2xl border shadow-sm overflow-hidden ${isDouble ? "border-amber-300 ring-1 ring-amber-200" : "border-slate-100"}`}>
+    <div className={`bg-white rounded-2xl border overflow-hidden transition-shadow ${isDouble ? "border-amber-400 shadow-[0_0_0_3px_rgba(251,191,36,0.4),0_4px_24px_rgba(245,158,11,0.3)]" : "border-slate-100 shadow-sm"}`}>
       {isDouble && (
         <div className="bg-amber-500 text-white text-xs font-bold text-center py-1.5 flex items-center justify-center gap-1">
-          <Zap className="h-3 w-3" />
+          <Crown className="h-3 w-3" />
           Vale o dobro!
         </div>
       )}
@@ -329,7 +386,7 @@ function MatchPredictionCard({
                 value={val.home}
                 onChange={(e) => onInputChange(match.id, "home", e.target.value)}
                 placeholder="0"
-                className="flex-1 h-14 text-center text-2xl font-black rounded-xl border-2 border-slate-200 focus:border-orange-500 focus:outline-none bg-slate-50"
+                className="flex-1 h-14 text-center text-2xl font-black text-slate-900 rounded-xl border-2 border-slate-200 focus:border-orange-500 focus:outline-none bg-slate-50"
               />
               <span className="font-black text-slate-400 text-xl">–</span>
               <input
@@ -341,7 +398,7 @@ function MatchPredictionCard({
                 value={val.away}
                 onChange={(e) => onInputChange(match.id, "away", e.target.value)}
                 placeholder="0"
-                className="flex-1 h-14 text-center text-2xl font-black rounded-xl border-2 border-slate-200 focus:border-orange-500 focus:outline-none bg-slate-50"
+                className="flex-1 h-14 text-center text-2xl font-black text-slate-900 rounded-xl border-2 border-slate-200 focus:border-orange-500 focus:outline-none bg-slate-50"
               />
             </div>
             <div className="flex gap-2">
@@ -364,9 +421,9 @@ function MatchPredictionCard({
                       ? "bg-amber-500 border-amber-500 text-white"
                       : "border-amber-300 text-amber-600 hover:bg-amber-50"
                   }`}
-                  title={isDouble ? "Remover dobro" : "Marcar como vale o dobro"}
+                  title={isDouble ? "Remover coroa" : "Marcar como vale o dobro"}
                 >
-                  <Zap className="h-4 w-4" />
+                  <Crown className="h-4 w-4" />
                 </button>
               )}
             </div>

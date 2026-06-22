@@ -86,6 +86,7 @@ export default function MatchDetailPage({ params }: { params: Promise<{ id: stri
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...form,
+          matchDate: form.matchDate ? new Date(form.matchDate).toISOString() : form.matchDate,
           groupId: form.groupId || null,
           stadiumId: form.stadiumId || null,
           roundId: form.roundId || null,

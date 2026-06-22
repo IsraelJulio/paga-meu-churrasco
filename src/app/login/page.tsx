@@ -135,24 +135,6 @@ export default function LoginPage() {
           </div>
         </div>
 
-        {/* Test credentials hint */}
-        <div className="mt-4 bg-white/5 border border-white/10 rounded-2xl p-4 text-xs text-slate-400">
-          <p className="font-semibold text-slate-300 mb-2">
-            Credenciais de teste:
-          </p>
-          <p>
-            Admin: <span className="text-orange-300">admin</span> / admin123
-          </p>
-          <p>
-            Usuário: <span className="text-orange-300">user</span> / user123
-          </p>
-        </div>
-
-        <p className="text-center text-slate-600 text-sm mt-4">
-          <Link href="/" className="hover:text-slate-400 transition-colors">
-            ← Voltar para o início
-          </Link>
-        </p>
       </div>
     </div>
   );

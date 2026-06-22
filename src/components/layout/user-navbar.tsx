@@ -67,7 +67,7 @@ export function UserNavbar({ userName, userRole }: UserNavbarProps) {
             {userDropOpen && (
               <div className="absolute right-0 top-full mt-1 w-48 bg-white rounded-xl shadow-xl border border-slate-100 text-slate-700 overflow-hidden">
                 <button
-                  onClick={() => signOut({ callbackUrl: "/" })}
+                  onClick={() => signOut({ callbackUrl: "/login" })}
                   className="w-full flex items-center gap-2 px-4 py-3 hover:bg-slate-50 text-sm font-medium text-red-500"
                 >
                   <LogOut className="h-4 w-4" />
@@ -120,7 +120,7 @@ export function UserNavbar({ userName, userRole }: UserNavbarProps) {
             </Link>
           )}
           <button
-            onClick={() => signOut({ callbackUrl: "/" })}
+            onClick={() => signOut({ callbackUrl: "/login" })}
             className="flex items-center gap-2 px-3 py-3 rounded-xl hover:bg-white/10 font-medium text-red-400 mt-2"
           >
             <LogOut className="h-5 w-5" />

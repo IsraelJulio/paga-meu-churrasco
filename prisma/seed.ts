@@ -12,24 +12,24 @@ async function main() {
   const user2Hash = await bcrypt.hash("user456", 12);
 
   const admin = await prisma.user.upsert({
-    where: { email: "admin@pagameuchurrasco.com" },
+    where: { login: "admin" },
     update: {},
-    create: { name: "Admin", email: "admin@pagameuchurrasco.com", passwordHash: adminHash, role: "Admin" },
+    create: { name: "Admin", login: "admin", passwordHash: adminHash, role: "Admin" },
   });
 
   const user = await prisma.user.upsert({
-    where: { email: "user@pagameuchurrasco.com" },
+    where: { login: "user" },
     update: {},
-    create: { name: "Usuário Teste", email: "user@pagameuchurrasco.com", passwordHash: userHash, role: "User" },
+    create: { name: "Usuário Teste", login: "user", passwordHash: userHash, role: "User" },
   });
 
   const user2 = await prisma.user.upsert({
-    where: { email: "craque@pagameuchurrasco.com" },
+    where: { login: "craque" },
     update: {},
-    create: { name: "Craque do Palpite", email: "craque@pagameuchurrasco.com", passwordHash: user2Hash, role: "User" },
+    create: { name: "Craque do Palpite", login: "craque", passwordHash: user2Hash, role: "User" },
   });
 
-  console.log(`✅ Usuários criados: ${admin.email}, ${user.email}, ${user2.email}`);
+  console.log(`✅ Usuários criados: ${admin.login}, ${user.login}, ${user2.login}`);
 
   // Groups
   const groupA = await prisma.group.upsert({ where: { id: "group-a" }, update: {}, create: { id: "group-a", name: "Grupo A", description: "Brasil, Noruega, Costa do Marfim, México" } });

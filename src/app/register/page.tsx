@@ -3,7 +3,7 @@ import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Flame, User, Mail, Lock, Eye, EyeOff } from "lucide-react";
+import { Flame, User, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
@@ -11,7 +11,7 @@ import { toast } from "sonner";
 export default function RegisterPage() {
   const router = useRouter();
   const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
+  const [login, setLogin] = useState("");
   const [password, setPassword] = useState("");
   const [showPass, setShowPass] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -31,7 +31,7 @@ export default function RegisterPage() {
       const res = await fetch("/api/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, password }),
+        body: JSON.stringify({ name, login, password }),
       });
 
       const data = await res.json();
@@ -44,7 +44,7 @@ export default function RegisterPage() {
       toast.success("Conta criada! Bem-vindo ao bolão! 🔥");
 
       const result = await signIn("credentials", {
-        email,
+        login,
         password,
         redirect: false,
       });
@@ -107,15 +107,15 @@ export default function RegisterPage() {
 
             <div className="relative">
               <Input
-                label="E-mail"
-                type="email"
-                placeholder="seu@email.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                label="Login"
+                type="text"
+                placeholder="Escolha seu login"
+                value={login}
+                onChange={(e) => setLogin(e.target.value)}
                 required
-                autoComplete="email"
+                autoComplete="username"
               />
-              <Mail className="absolute right-3 top-9 h-4 w-4 text-slate-400" />
+              <User className="absolute right-3 top-9 h-4 w-4 text-slate-400" />
             </div>
 
             <div className="relative">

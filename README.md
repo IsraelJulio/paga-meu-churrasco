@@ -44,13 +44,13 @@ npm run dev
 
 Acesse [http://localhost:3000](http://localhost:3000)
 
-## Credenciais de teste
+## Credenciais de teste - obsoleto
 
-| Tipo         | E-mail                          | Senha    |
-|--------------|---------------------------------|----------|
-| **Admin**    | admin@pagameuchurrasco.com      | admin123 |
-| **Usuário**  | user@pagameuchurrasco.com       | user123  |
-| **Usuário2** | craque@pagameuchurrasco.com     | user456  |
+| Tipo         | E-mail                      | Senha    |
+| ------------ | --------------------------- | -------- |
+| **Admin**    | admin@pagameuchurrasco.com  | admin123 |
+| **Usuário**  | user@pagameuchurrasco.com   | user123  |
+| **Usuário2** | craque@pagameuchurrasco.com | user456  |
 
 ## Scripts disponíveis
 
@@ -68,6 +68,7 @@ npm run db:studio     # Abrir Prisma Studio (visualizar BD)
 ## Como usar o sistema de bolões
 
 ### Criar um bolão
+
 1. Faça login em `/login`
 2. Acesse `/dashboard/pools/new`
 3. Defina nome e descrição
@@ -75,11 +76,13 @@ npm run db:studio     # Abrir Prisma Studio (visualizar BD)
 5. Compartilhe o código com seus amigos
 
 ### Entrar em um bolão
+
 1. Acesse `/dashboard/pools/join`
 2. Insira o código de convite recebido
 3. Pronto — você está no bolão!
 
 ### Fazer palpites
+
 1. Acesse o bolão em `/dashboard/pools`
 2. Clique em **Palpites**
 3. Insira os placares previstos para cada partida
@@ -88,20 +91,22 @@ npm run db:studio     # Abrir Prisma Studio (visualizar BD)
 
 ### Regras de pontuação
 
-| Acerto                    | Pontos |
-|---------------------------|--------|
-| Acertou o vencedor        | +3     |
-| Acertou a diferença de gols | +2   |
-| Acertou o total de gols   | +2     |
-| Acertou o placar exato    | +10    |
-| **Partida valendo dobro** | ×2     |
+| Acerto                      | Pontos |
+| --------------------------- | ------ |
+| Acertou o vencedor          | +3     |
+| Acertou a diferença de gols | +2     |
+| Acertou o total de gols     | +2     |
+| Acertou o placar exato      | +10    |
+| **Partida valendo dobro**   | ×2     |
 
 **Exemplo — Placar exato:** Palpite 2×0, Resultado 2×0 → 3+2+2+10 = **17 pontos**
 
 **Exemplo — Com dobro:** 17 pontos × 2 = **34 pontos**
 
 ### Ranking
+
 Os participantes são ordenados por:
+
 1. Total de pontos
 2. Placares exatos
 3. Resultados corretos
@@ -163,39 +168,43 @@ src/__tests__/
 ## Rotas de acesso
 
 ### Usuário
-| Rota                              | Descrição                    |
-|-----------------------------------|------------------------------|
-| `/dashboard`                      | Dashboard com resumo         |
-| `/dashboard/pools`                | Meus bolões                  |
-| `/dashboard/pools/new`            | Criar bolão                  |
-| `/dashboard/pools/join`           | Entrar com código            |
-| `/dashboard/pools/[id]`           | Detalhes do bolão            |
-| `/dashboard/pools/[id]/predictions` | Palpites                   |
-| `/dashboard/pools/[id]/ranking`   | Ranking                      |
-| `/dashboard/pools/[id]/badges`    | Conquistas                   |
-| `/dashboard/pools/[id]/participants` | Participantes              |
+
+| Rota                                 | Descrição            |
+| ------------------------------------ | -------------------- |
+| `/dashboard`                         | Dashboard com resumo |
+| `/dashboard/pools`                   | Meus bolões          |
+| `/dashboard/pools/new`               | Criar bolão          |
+| `/dashboard/pools/join`              | Entrar com código    |
+| `/dashboard/pools/[id]`              | Detalhes do bolão    |
+| `/dashboard/pools/[id]/predictions`  | Palpites             |
+| `/dashboard/pools/[id]/ranking`      | Ranking              |
+| `/dashboard/pools/[id]/badges`       | Conquistas           |
+| `/dashboard/pools/[id]/participants` | Participantes        |
 
 ### Admin
-| Rota                | Descrição            |
-|---------------------|----------------------|
-| `/admin`            | Dashboard admin      |
-| `/admin/teams`      | CRUD Seleções        |
-| `/admin/players`    | CRUD Jogadores       |
-| `/admin/groups`     | CRUD Grupos          |
-| `/admin/rounds`     | CRUD Rodadas         |
-| `/admin/matches`    | CRUD Partidas        |
-| `/admin/stadiums`   | CRUD Estádios        |
-| `/admin/badges`     | CRUD Conquistas      |
-| `/admin/pools`      | Gerenciar bolões     |
+
+| Rota              | Descrição        |
+| ----------------- | ---------------- |
+| `/admin`          | Dashboard admin  |
+| `/admin/teams`    | CRUD Seleções    |
+| `/admin/players`  | CRUD Jogadores   |
+| `/admin/groups`   | CRUD Grupos      |
+| `/admin/rounds`   | CRUD Rodadas     |
+| `/admin/matches`  | CRUD Partidas    |
+| `/admin/stadiums` | CRUD Estádios    |
+| `/admin/badges`   | CRUD Conquistas  |
+| `/admin/pools`    | Gerenciar bolões |
 
 ## Variáveis de ambiente
 
 Arquivo `.env` (lido pelo Prisma CLI):
+
 ```
 DATABASE_URL="postgresql://postgres:SENHA@host.proxy.rlwy.net:PORTA/railway"
 ```
 
 Arquivo `.env.local` (lido pelo Next.js em dev):
+
 ```
 DATABASE_URL="postgresql://postgres:SENHA@host.proxy.rlwy.net:PORTA/railway"
 NEXTAUTH_SECRET="sua-chave-secreta-aqui"
@@ -221,11 +230,11 @@ No painel da Vercel, clique em **Add New → Project** e importe o repositório 
 
 Na tela de configuração (ou em **Settings → Environment Variables**), adicione:
 
-| Variável | Valor |
-|---|---|
-| `DATABASE_URL` | URL pública do Railway (ex: `postgresql://postgres:SENHA@host.proxy.rlwy.net:PORTA/railway`) |
-| `NEXTAUTH_SECRET` | String aleatória segura (gere com `openssl rand -base64 32`) |
-| `NEXTAUTH_URL` | URL do seu domínio na Vercel (ex: `https://meu-app.vercel.app`) |
+| Variável          | Valor                                                                                        |
+| ----------------- | -------------------------------------------------------------------------------------------- |
+| `DATABASE_URL`    | URL pública do Railway (ex: `postgresql://postgres:SENHA@host.proxy.rlwy.net:PORTA/railway`) |
+| `NEXTAUTH_SECRET` | String aleatória segura (gere com `openssl rand -base64 32`)                                 |
+| `NEXTAUTH_URL`    | URL do seu domínio na Vercel (ex: `https://meu-app.vercel.app`)                              |
 
 > Não use a URL interna `postgres.railway.internal` — ela só funciona dentro da rede privada do Railway. Use sempre a URL pública.
 
@@ -242,6 +251,7 @@ Isso garante que o Prisma Client seja regenerado antes de cada build.
 **4. Fazer deploy**
 
 Clique em **Deploy**. A Vercel vai:
+
 1. Instalar dependências (`npm install`)
 2. Gerar o Prisma Client (`prisma generate`)
 3. Fazer o build do Next.js (`next build`)
@@ -278,6 +288,7 @@ npx prisma migrate deploy
 ## O que está implementado
 
 ### Base
+
 - [x] Landing page pública
 - [x] Cadastro e login
 - [x] Proteção de rotas (middleware)
@@ -286,6 +297,7 @@ npx prisma migrate deploy
 - [x] Design mobile-first
 
 ### Sistema de Bolões (Fase 2)
+
 - [x] Criar bolão com código de convite único
 - [x] Entrar em bolão por código
 - [x] Ver bolões em que participa

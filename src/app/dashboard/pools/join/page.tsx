@@ -45,7 +45,7 @@ export default function JoinPoolPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col">
+    <div className="min-h-screen bg-[#060611] flex flex-col">
       <UserNavbar
         userName={session?.user?.name}
         userRole={session?.user?.role as "User" | "Admin" | undefined}
@@ -54,24 +54,24 @@ export default function JoinPoolPage() {
       <main className="flex-1 max-w-lg mx-auto w-full px-4 py-6">
         <Link
           href="/dashboard/pools"
-          className="flex items-center gap-1 text-sm text-slate-500 hover:text-slate-700 mb-5"
+          className="flex items-center gap-1 text-sm text-slate-500 hover:text-slate-300 mb-5 transition-colors"
         >
           <ChevronLeft className="h-4 w-4" />
           Meus Bolões
         </Link>
 
-        <div className="mb-6">
-          <div className="w-12 h-12 bg-green-500 rounded-2xl flex items-center justify-center mb-3">
+        <div className="mb-6 animate-slide-up">
+          <div className="w-12 h-12 bg-green-600 rounded-2xl flex items-center justify-center mb-3 shadow-[0_0_20px_rgba(34,197,94,0.4)]">
             <LogIn className="h-6 w-6 text-white" />
           </div>
-          <h1 className="text-2xl font-black text-slate-900">Entrar no Bolão</h1>
-          <p className="text-sm text-slate-500 mt-1">
+          <h1 className="text-2xl font-black text-slate-100 font-display tracking-wide">Entrar no Bolão</h1>
+          <p className="text-sm text-slate-400 mt-1">
             Insira o código de convite compartilhado com você.
           </p>
         </div>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          <div className="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm">
+          <div className="bg-[#0d0d1e] rounded-2xl p-5 border border-orange-500/15">
             <Input
               label="Código de convite"
               placeholder="Ex: AB3X7K"
@@ -88,9 +88,9 @@ export default function JoinPoolPage() {
           </Button>
         </form>
 
-        <p className="text-center text-sm text-slate-400 mt-4">
+        <p className="text-center text-sm text-slate-500 mt-4">
           Não tem um código?{" "}
-          <Link href="/dashboard/pools/new" className="text-orange-500 font-semibold">
+          <Link href="/dashboard/pools/new" className="text-orange-400 font-semibold hover:text-orange-300 transition-colors">
             Crie seu próprio bolão
           </Link>
         </p>

@@ -66,12 +66,12 @@ export default function PoolDetailPage({ params }: { params: Promise<{ id: strin
   if (loading) return <PageSpinner label="Carregando bolão..." />;
   if (!pool || !pool.myParticipant) {
     return (
-      <div className="min-h-screen bg-slate-50 flex flex-col">
+      <div className="min-h-screen bg-[#060611] flex flex-col">
         <UserNavbar userName={session?.user?.name} userRole={session?.user?.role as "User" | "Admin" | undefined} />
         <main className="flex-1 flex items-center justify-center px-4">
           <div className="text-center">
-            <p className="text-slate-500">Bolão não encontrado ou acesso negado.</p>
-            <Link href="/dashboard/pools" className="text-orange-500 font-semibold mt-2 block">
+            <p className="text-slate-400">Bolão não encontrado ou acesso negado.</p>
+            <Link href="/dashboard/pools" className="text-orange-400 font-semibold mt-2 block hover:text-orange-300">
               Voltar aos bolões
             </Link>
           </div>
@@ -83,7 +83,7 @@ export default function PoolDetailPage({ params }: { params: Promise<{ id: strin
   const participant = pool.myParticipant;
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col">
+    <div className="min-h-screen bg-[#060611] flex flex-col">
       <UserNavbar
         userName={session?.user?.name}
         userRole={session?.user?.role as "User" | "Admin" | undefined}
@@ -92,53 +92,57 @@ export default function PoolDetailPage({ params }: { params: Promise<{ id: strin
       <main className="flex-1 max-w-2xl mx-auto w-full px-4 py-6">
         <Link
           href="/dashboard/pools"
-          className="flex items-center gap-1 text-sm text-slate-500 hover:text-slate-700 mb-4"
+          className="flex items-center gap-1 text-sm text-slate-500 hover:text-slate-300 mb-4 transition-colors"
         >
           <ChevronLeft className="h-4 w-4" />
           Meus Bolões
         </Link>
 
-        {/* Header */}
-        <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl p-5 mb-4 text-white">
-          <div className="flex items-start justify-between gap-3 mb-3">
+        {/* Header card */}
+        <div className="bg-[#0d0d1e] border border-orange-500/25 rounded-2xl p-5 mb-4 shadow-[0_0_30px_rgba(249,115,22,0.1)] animate-slide-up">
+          <div className="flex items-start justify-between gap-3 mb-4">
             <div>
               <div className="flex items-center gap-2 mb-1">
-                <h1 className="text-xl font-black">{pool.name}</h1>
+                <h1 className="text-xl font-black text-slate-100 font-display tracking-wide">{pool.name}</h1>
                 {participant.role === "Owner" && (
-                  <Crown className="h-4 w-4 text-amber-400" />
+                  <Crown className="h-4 w-4 text-amber-400" style={{ filter: "drop-shadow(0 0 6px rgba(245,158,11,0.7))" }} />
                 )}
               </div>
               {pool.description && (
                 <p className="text-slate-400 text-sm">{pool.description}</p>
               )}
-              <span className={`inline-block mt-1 text-xs font-medium px-2 py-0.5 rounded-full ${
-                pool.status === "Active" ? "bg-green-500/20 text-green-300" : "bg-slate-600 text-slate-400"
+              <span className={`inline-block mt-1.5 text-xs font-medium px-2 py-0.5 rounded-full ${
+                pool.status === "Active"
+                  ? "bg-green-500/15 border border-green-500/25 text-green-400"
+                  : "bg-white/8 border border-white/10 text-slate-400"
               }`}>
                 {STATUS_LABELS[pool.status] ?? pool.status}
               </span>
             </div>
             <div className="text-right shrink-0">
-              <div className="text-3xl font-black text-white">{participant.totalPoints}</div>
-              <div className="text-slate-400 text-xs">pontos</div>
+              <div className="text-4xl font-black text-white font-display" style={{ textShadow: "0 0 20px rgba(249,115,22,0.4)" }}>
+                {participant.totalPoints}
+              </div>
+              <div className="text-slate-500 text-xs">pontos</div>
             </div>
           </div>
 
           {/* Invite code */}
-          <div className="bg-white/10 rounded-xl p-3 flex items-center justify-between gap-2">
+          <div className="bg-white/5 border border-white/8 rounded-xl p-3 flex items-center justify-between gap-2">
             <div>
-              <p className="text-xs text-slate-400 mb-0.5">Código de convite</p>
-              <p className="font-black text-xl tracking-widest text-white">
+              <p className="text-xs text-slate-500 mb-0.5">Código de convite</p>
+              <p className="font-black text-xl tracking-widest text-orange-400 font-display" style={{ textShadow: "0 0 12px rgba(249,115,22,0.4)" }}>
                 {pool.inviteCode}
               </p>
             </div>
             <button
               onClick={copyCode}
-              className="p-2 bg-white/10 hover:bg-white/20 rounded-xl transition-colors"
+              className="p-2 bg-white/8 hover:bg-orange-500/20 rounded-xl transition-colors border border-white/10 hover:border-orange-500/30"
             >
               {copied ? (
                 <Check className="h-5 w-5 text-green-400" />
               ) : (
-                <Copy className="h-5 w-5 text-white" />
+                <Copy className="h-5 w-5 text-slate-400" />
               )}
             </button>
           </div>
@@ -147,27 +151,27 @@ export default function PoolDetailPage({ params }: { params: Promise<{ id: strin
         {/* Navigation cards */}
         <div className="grid grid-cols-2 gap-3">
           <Link href={`/dashboard/pools/${id}/predictions`}>
-            <div className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm hover:shadow-md transition-shadow active:scale-[0.99]">
-              <div className="w-10 h-10 bg-orange-100 rounded-xl flex items-center justify-center mb-3">
-                <Target className="h-5 w-5 text-orange-500" />
+            <div className="bg-[#0d0d1e] rounded-2xl p-4 border border-orange-500/15 hover:border-orange-500/35 hover:shadow-[0_0_22px_rgba(249,115,22,0.12)] transition-all duration-200 active:scale-[0.99]">
+              <div className="w-10 h-10 bg-orange-500/15 border border-orange-500/25 rounded-xl flex items-center justify-center mb-3 shadow-[0_0_12px_rgba(249,115,22,0.15)]">
+                <Target className="h-5 w-5 text-orange-400" />
               </div>
-              <p className="font-bold text-slate-900">Palpites</p>
-              <p className="text-xs text-slate-400 mt-0.5">Fazer e ver palpites</p>
+              <p className="font-bold text-slate-100">Palpites</p>
+              <p className="text-xs text-slate-500 mt-0.5">Fazer e ver palpites</p>
             </div>
           </Link>
 
           <Link href={`/dashboard/pools/${id}/ranking`}>
-            <div className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm hover:shadow-md transition-shadow active:scale-[0.99]">
-              <div className="w-10 h-10 bg-amber-100 rounded-xl flex items-center justify-center mb-3">
-                <Trophy className="h-5 w-5 text-amber-500" />
+            <div className="bg-[#0d0d1e] rounded-2xl p-4 border border-amber-500/15 hover:border-amber-500/35 hover:shadow-[0_0_22px_rgba(245,158,11,0.12)] transition-all duration-200 active:scale-[0.99]">
+              <div className="w-10 h-10 bg-amber-500/15 border border-amber-500/25 rounded-xl flex items-center justify-center mb-3 shadow-[0_0_12px_rgba(245,158,11,0.15)]">
+                <Trophy className="h-5 w-5 text-amber-400" />
               </div>
-              <p className="font-bold text-slate-900">Ranking</p>
-              <p className="text-xs text-slate-400 mt-0.5">Ver classificação</p>
+              <p className="font-bold text-slate-100">Ranking</p>
+              <p className="text-xs text-slate-500 mt-0.5">Ver classificação</p>
             </div>
           </Link>
         </div>
 
-        <p className="text-center text-xs text-slate-400 mt-4">
+        <p className="text-center text-xs text-slate-600 mt-4">
           Criado por {pool.owner.name}
         </p>
       </main>

@@ -2,22 +2,15 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { calculateMatchScores } from "@/services/scoring/scoringService";
-import { awardBadgesAfterMatch } from "@/services/badges/badgeAwardService";
 
 export async function GET(_: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const match = await prisma.match.findUnique({
+  const round = await prisma.round.findUnique({
     where: { id },
-    include: {
-      homeTeam: true,
-      awayTeam: true,
-      group: true,
-      stadium: true,
-    },
+    include: { matches: { include: { homeTeam: true, awayTeam: true } } },
   });
-  if (!match) return NextResponse.json({ error: "Não encontrado" }, { status: 404 });
-  return NextResponse.json(match);
+  if (!round) return NextResponse.json({ error: "Não encontrado" }, { status: 404 });
+  return NextResponse.json(round);
 }
 
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -28,18 +21,10 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   const { id } = await params;
   try {
     const data = await req.json();
-    if (data.matchDate) data.matchDate = new Date(data.matchDate);
-    if (data.homeScore !== undefined) data.homeScore = data.homeScore === "" ? null : Number(data.homeScore);
-    if (data.awayScore !== undefined) data.awayScore = data.awayScore === "" ? null : Number(data.awayScore);
-    const prevMatch = await prisma.match.findUnique({ where: { id }, select: { status: true } });
-    const match = await prisma.match.update({ where: { id }, data });
-
-    // Auto-calculate scores when match becomes Finished
-    if (match.status === "Finished" && prevMatch?.status !== "Finished" && match.homeScore != null && match.awayScore != null) {
-      calculateMatchScores(match.id).then(() => awardBadgesAfterMatch(match.id)).catch(console.error);
-    }
-
-    return NextResponse.json(match);
+    if (data.startDate) data.startDate = new Date(data.startDate);
+    if (data.endDate) data.endDate = new Date(data.endDate);
+    const round = await prisma.round.update({ where: { id }, data });
+    return NextResponse.json(round);
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : "Erro interno";
     return NextResponse.json({ error: msg }, { status: 400 });
@@ -53,7 +38,7 @@ export async function DELETE(_: NextRequest, { params }: { params: Promise<{ id:
   }
   const { id } = await params;
   try {
-    await prisma.match.delete({ where: { id } });
+    await prisma.round.delete({ where: { id } });
     return NextResponse.json({ ok: true });
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : "Erro interno";

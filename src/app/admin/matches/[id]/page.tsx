@@ -26,6 +26,8 @@ interface Match {
   awayTeam: { id: string; name: string; code: string };
   group?: { id: string; name: string } | null;
   stadium?: { id: string; name: string; city: string } | null;
+  round?: { id: string; name: string } | null;
+  roundId?: string | null;
 }
 
 export default function MatchDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -36,12 +38,16 @@ export default function MatchDetailPage({ params }: { params: Promise<{ id: stri
   const [teams, setTeams] = useState<{ id: string; name: string }[]>([]);
   const [groups, setGroups] = useState<{ id: string; name: string }[]>([]);
   const [stadiums, setStadiums] = useState<{ id: string; name: string; city: string }[]>([]);
+  const [rounds, setRounds] = useState<{ id: string; name: string }[]>([]);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(searchParams.get("edit") === "true");
   const [saving, setSaving] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
-  const [form, setForm] = useState({ homeTeamId: "", awayTeamId: "", groupId: "", stadiumId: "", matchDate: "", homeScore: "", awayScore: "", status: "Scheduled", phase: "GroupStage" });
+  const [form, setForm] = useState({
+    homeTeamId: "", awayTeamId: "", groupId: "", stadiumId: "", roundId: "",
+    matchDate: "", homeScore: "", awayScore: "", status: "Scheduled", phase: "GroupStage",
+  });
 
   useEffect(() => {
     Promise.all([
@@ -49,10 +55,22 @@ export default function MatchDetailPage({ params }: { params: Promise<{ id: stri
       fetch("/api/teams").then((r) => r.json()),
       fetch("/api/groups").then((r) => r.json()),
       fetch("/api/stadiums").then((r) => r.json()),
-    ]).then(([mData, tData, gData, sData]) => {
+      fetch("/api/rounds").then((r) => r.json()),
+    ]).then(([mData, tData, gData, sData, rData]) => {
       setMatch(mData);
-      setTeams(tData); setGroups(gData); setStadiums(sData);
-      setForm({ homeTeamId: mData.homeTeamId || "", awayTeamId: mData.awayTeamId || "", groupId: mData.groupId || "", stadiumId: mData.stadiumId || "", matchDate: formatDateTimeLocal(mData.matchDate), homeScore: mData.homeScore?.toString() ?? "", awayScore: mData.awayScore?.toString() ?? "", status: mData.status || "Scheduled", phase: mData.phase || "GroupStage" });
+      setTeams(tData); setGroups(gData); setStadiums(sData); setRounds(rData);
+      setForm({
+        homeTeamId: mData.homeTeamId || "",
+        awayTeamId: mData.awayTeamId || "",
+        groupId: mData.groupId || "",
+        stadiumId: mData.stadiumId || "",
+        roundId: mData.roundId || "",
+        matchDate: formatDateTimeLocal(mData.matchDate),
+        homeScore: mData.homeScore?.toString() ?? "",
+        awayScore: mData.awayScore?.toString() ?? "",
+        status: mData.status || "Scheduled",
+        phase: mData.phase || "GroupStage",
+      });
     }).finally(() => setLoading(false));
   }, [id]);
 
@@ -62,7 +80,18 @@ export default function MatchDetailPage({ params }: { params: Promise<{ id: stri
     e.preventDefault();
     setSaving(true);
     try {
-      const res = await fetch(`/api/matches/${id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...form, groupId: form.groupId || null, stadiumId: form.stadiumId || null, homeScore: form.homeScore !== "" ? Number(form.homeScore) : null, awayScore: form.awayScore !== "" ? Number(form.awayScore) : null }) });
+      const res = await fetch(`/api/matches/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...form,
+          groupId: form.groupId || null,
+          stadiumId: form.stadiumId || null,
+          roundId: form.roundId || null,
+          homeScore: form.homeScore !== "" ? Number(form.homeScore) : null,
+          awayScore: form.awayScore !== "" ? Number(form.awayScore) : null,
+        }),
+      });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
       setMatch(data);
@@ -94,9 +123,13 @@ export default function MatchDetailPage({ params }: { params: Promise<{ id: stri
               <div className="bg-slate-900 text-white px-5 py-2 rounded-xl font-black text-2xl">{match.status === "Scheduled" ? "x" : `${match.homeScore ?? 0} - ${match.awayScore ?? 0}`}</div>
               <div className="text-center"><p className="text-2xl font-black">{match.awayTeam.code}</p><p className="text-xs text-slate-500">{match.awayTeam.name}</p></div>
             </div>
-            <div className="flex flex-wrap gap-2 justify-center"><Badge variant={statusVariant[match.status]}>{MATCH_STATUS_LABELS[match.status]}</Badge><Badge variant="outline">{MATCH_PHASE_LABELS[match.phase]}</Badge></div>
+            <div className="flex flex-wrap gap-2 justify-center">
+              <Badge variant={statusVariant[match.status]}>{MATCH_STATUS_LABELS[match.status]}</Badge>
+              <Badge variant="outline">{MATCH_PHASE_LABELS[match.phase]}</Badge>
+            </div>
             {[
               { label: "Data", value: formatDateTime(match.matchDate) },
+              { label: "Rodada", value: match.round?.name ?? "—" },
               { label: "Grupo", value: match.group?.name ?? "—" },
               { label: "Estádio", value: match.stadium ? `${match.stadium.name}, ${match.stadium.city}` : "—" },
             ].map((row) => (
@@ -127,6 +160,10 @@ export default function MatchDetailPage({ params }: { params: Promise<{ id: stri
                 {statuses.map((s) => <option key={s} value={s}>{s}</option>)}
               </Select>
             </div>
+            <Select label="Rodada" value={form.roundId} onChange={(e) => set("roundId", e.target.value)}>
+              <option value="">— Sem rodada —</option>
+              {rounds.map((r) => <option key={r.id} value={r.id}>{r.name}</option>)}
+            </Select>
             <Select label="Grupo" value={form.groupId} onChange={(e) => set("groupId", e.target.value)}>
               <option value="">—</option>
               {groups.map((g) => <option key={g.id} value={g.id}>{g.name}</option>)}

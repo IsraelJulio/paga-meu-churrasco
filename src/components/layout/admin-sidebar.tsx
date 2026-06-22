@@ -14,6 +14,8 @@ import {
   LogOut,
   Flame,
   Home,
+  Layers,
+  Shuffle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -22,9 +24,11 @@ const navItems = [
   { href: "/admin/teams", icon: Flag, label: "Seleções" },
   { href: "/admin/players", icon: Users, label: "Jogadores" },
   { href: "/admin/groups", icon: Trophy, label: "Grupos" },
+  { href: "/admin/rounds", icon: Layers, label: "Rodadas" },
   { href: "/admin/matches", icon: Calendar, label: "Partidas" },
   { href: "/admin/stadiums", icon: MapPin, label: "Estádios" },
   { href: "/admin/badges", icon: Star, label: "Conquistas" },
+  { href: "/admin/pools", icon: Shuffle, label: "Bolões" },
   { href: "/admin/imports", icon: Upload, label: "Importações" },
 ];
 

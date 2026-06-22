@@ -17,6 +17,7 @@ import {
   LogIn,
   ChevronRight,
 } from "lucide-react";
+import { TeamFlag } from "@/components/ui/team-flag";
 
 export default async function DashboardPage() {
   const session = await getServerSession(authOptions);
@@ -42,8 +43,8 @@ export default async function DashboardPage() {
     prisma.match.findMany({
       where: { status: "Scheduled", matchDate: { gte: new Date() } },
       include: {
-        homeTeam: { select: { code: true, name: true } },
-        awayTeam: { select: { code: true, name: true } },
+        homeTeam: { select: { code: true, name: true, flagUrl: true, primaryColor: true } },
+        awayTeam: { select: { code: true, name: true, flagUrl: true, primaryColor: true } },
       },
       orderBy: { matchDate: "asc" },
       take: 3,
@@ -191,10 +192,16 @@ export default async function DashboardPage() {
               {nextMatches.map((m) => (
                 <div key={m.id} className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm">
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                      <span className="font-black text-slate-900">{m.homeTeam.code}</span>
+                    <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-1.5">
+                        <TeamFlag flagUrl={m.homeTeam.flagUrl} code={m.homeTeam.code} primaryColor={m.homeTeam.primaryColor} size="sm" />
+                        <span className="font-black text-slate-900">{m.homeTeam.code}</span>
+                      </div>
                       <span className="text-slate-400 text-sm">vs</span>
-                      <span className="font-black text-slate-900">{m.awayTeam.code}</span>
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-black text-slate-900">{m.awayTeam.code}</span>
+                        <TeamFlag flagUrl={m.awayTeam.flagUrl} code={m.awayTeam.code} primaryColor={m.awayTeam.primaryColor} size="sm" />
+                      </div>
                     </div>
                     <span className="text-xs text-slate-400">
                       {new Date(m.matchDate).toLocaleDateString("pt-BR", {

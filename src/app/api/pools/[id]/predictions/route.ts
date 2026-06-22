@@ -21,9 +21,9 @@ export async function GET(_: NextRequest, { params }: { params: Promise<{ id: st
   const matches = await prisma.match.findMany({
     where: { status: { not: "Canceled" } },
     include: {
-      homeTeam: { select: { id: true, name: true, code: true } },
-      awayTeam: { select: { id: true, name: true, code: true } },
-      round: { select: { id: true, name: true, phase: true } },
+      homeTeam: { select: { id: true, name: true, code: true, flagUrl: true, primaryColor: true } },
+      awayTeam: { select: { id: true, name: true, code: true, flagUrl: true, primaryColor: true } },
+      round: { select: { id: true, name: true, phase: true, startDate: true, createdAt: true } },
     },
     orderBy: { matchDate: "asc" },
   });

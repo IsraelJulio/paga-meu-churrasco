@@ -9,6 +9,7 @@ import { PageSpinner } from "@/components/ui/spinner";
 import { PageHeader } from "@/components/admin/page-header";
 import { toast } from "sonner";
 import { Edit, Trash2 } from "lucide-react";
+import { TeamFlag } from "@/components/ui/team-flag";
 
 interface Team {
   id: string;
@@ -118,12 +119,7 @@ export default function TeamDetailPage({ params }: { params: Promise<{ id: strin
         {!editing ? (
           <div className="flex flex-col gap-4">
             <div className="flex items-center gap-4">
-              <div
-                className="w-16 h-16 rounded-2xl flex items-center justify-center text-white font-black text-xl shadow-md"
-                style={{ backgroundColor: team.primaryColor || "#6366f1" }}
-              >
-                {team.code}
-              </div>
+              <TeamFlag flagUrl={team.flagUrl} code={team.code} primaryColor={team.primaryColor} size="lg" />
               <div>
                 <p className="text-2xl font-black text-slate-900">{team.name}</p>
                 <p className="text-slate-500">
@@ -149,8 +145,11 @@ export default function TeamDetailPage({ params }: { params: Promise<{ id: strin
             </div>
             {team.flagUrl && (
               <div className="bg-slate-50 rounded-xl p-3">
-                <p className="text-xs text-slate-400 font-medium mb-1">URL da bandeira</p>
-                <p className="text-sm text-slate-700 break-all">{team.flagUrl}</p>
+                <p className="text-xs text-slate-400 font-medium mb-2">Bandeira</p>
+                <div className="flex items-center gap-3">
+                  <img src={team.flagUrl} alt={`Bandeira ${team.code}`} className="h-10 rounded object-cover" />
+                  <p className="text-xs text-slate-500 break-all">{team.flagUrl}</p>
+                </div>
               </div>
             )}
           </div>

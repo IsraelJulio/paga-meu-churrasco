@@ -35,7 +35,12 @@ export async function GET(
       where: {
         poolId,
         userId,
-        match: { status: "Finished" },
+        match: {
+          OR: [
+            { status: { in: ["Finished", "Live"] } },
+            { matchDate: { lte: new Date() } },
+          ],
+        },
       },
       include: {
         match: {
@@ -100,6 +105,7 @@ export async function GET(
         homeScore: p.match.homeScore,
         awayScore: p.match.awayScore,
         matchDate: p.match.matchDate,
+        status: p.match.status,
       },
       score: p.score ?? null,
     })),

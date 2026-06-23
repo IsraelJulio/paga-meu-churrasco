@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { signOut } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 import { useState } from "react";
 import {
   Menu,
@@ -21,6 +21,11 @@ interface UserNavbarProps {
 export function UserNavbar({ userName, userRole }: UserNavbarProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [userDropOpen, setUserDropOpen] = useState(false);
+  const { data: session } = useSession();
+  const logoutUrl =
+    session?.user?.origin === "cartola"
+      ? "https://cartola-web-navy.vercel.app"
+      : "/login";
 
   return (
     <nav className="sticky top-0 z-40 bg-[#060611]/95 backdrop-blur-md border-b border-orange-500/20 shadow-[0_0_24px_rgba(249,115,22,0.08)]">
@@ -72,7 +77,7 @@ export function UserNavbar({ userName, userRole }: UserNavbarProps) {
             {userDropOpen && (
               <div className="absolute right-0 top-full mt-1 w-48 bg-[#0d0d1e] border border-orange-500/20 rounded-xl shadow-[0_0_30px_rgba(0,0,0,0.5)] overflow-hidden">
                 <button
-                  onClick={() => signOut({ callbackUrl: "/login" })}
+                  onClick={() => signOut({ callbackUrl: logoutUrl })}
                   className="w-full flex items-center gap-2 px-4 py-3 hover:bg-red-500/10 text-sm font-medium text-red-400 transition-colors"
                 >
                   <LogOut className="h-4 w-4" />
@@ -125,7 +130,7 @@ export function UserNavbar({ userName, userRole }: UserNavbarProps) {
             </Link>
           )}
           <button
-            onClick={() => signOut({ callbackUrl: "/login" })}
+            onClick={() => signOut({ callbackUrl: logoutUrl })}
             className="flex items-center gap-2 px-3 py-3 rounded-xl hover:bg-red-500/10 font-medium text-red-400 mt-2 transition-colors"
           >
             <LogOut className="h-5 w-5" />

@@ -15,6 +15,7 @@ import {
   CheckCircle2,
   XCircle,
   TrendingUp,
+  Lock,
 } from "lucide-react";
 import { TeamFlag } from "@/components/ui/team-flag";
 
@@ -56,6 +57,7 @@ interface UserStats {
       homeScore: number | null;
       awayScore: number | null;
       matchDate: string;
+      status: string;
     };
     score: {
       totalPoints: number;
@@ -70,8 +72,10 @@ interface UserStats {
 
 function predictionKind(
   prediction: UserStats["predictions"][number]
-): "exact" | "correct" | "wrong" | "unscored" {
-  if (!prediction.score) return "unscored";
+): "exact" | "correct" | "wrong" | "live" | "unscored" {
+  if (!prediction.score) {
+    return prediction.match.status === "Live" ? "live" : "unscored";
+  }
   if (prediction.score.exactScorePoints > 0) return "exact";
   if (prediction.score.resultPoints > 0 || prediction.score.goalDifferencePoints > 0) return "correct";
   return "wrong";
@@ -199,6 +203,8 @@ function UserStatsModal({
                       ? "bg-blue-500/8 border-blue-500/20"
                       : kind === "wrong"
                       ? "bg-red-500/8 border-red-500/20"
+                      : kind === "live"
+                      ? "bg-orange-500/8 border-orange-500/20"
                       : "bg-white/4 border-white/8";
 
                   return (
@@ -213,6 +219,8 @@ function UserStatsModal({
                           <CheckCircle2 className="h-4 w-4 text-blue-400" />
                         ) : kind === "wrong" ? (
                           <XCircle className="h-4 w-4 text-red-400" />
+                        ) : kind === "live" ? (
+                          <Lock className="h-4 w-4 text-orange-400" />
                         ) : (
                           <div className="h-4 w-4 rounded-full border-2 border-slate-600" />
                         )}
@@ -221,7 +229,11 @@ function UserStatsModal({
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-1 text-xs font-semibold text-slate-300">
                           <TeamFlag flagUrl={pred.match.homeTeam.flagUrl} code={pred.match.homeTeam.code} primaryColor={pred.match.homeTeam.primaryColor} size="xs" />
-                          <span>{pred.match.homeScore ?? "?"} – {pred.match.awayScore ?? "?"}</span>
+                          {kind === "live" ? (
+                            <span className="text-orange-400">Ao vivo</span>
+                          ) : (
+                            <span>{pred.match.homeScore ?? "?"} – {pred.match.awayScore ?? "?"}</span>
+                          )}
                           <TeamFlag flagUrl={pred.match.awayTeam.flagUrl} code={pred.match.awayTeam.code} primaryColor={pred.match.awayTeam.primaryColor} size="xs" />
                         </div>
                         <div className="text-xs text-slate-500">

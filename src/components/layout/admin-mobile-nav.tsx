@@ -24,6 +24,7 @@ const navItems = [
   { href: "/admin", icon: LayoutDashboard, label: "Dashboard", exact: true },
   { href: "/admin/teams", icon: Flag, label: "Seleções" },
   { href: "/admin/matches", icon: Calendar, label: "Partidas" },
+  { href: "/admin/users", icon: Users, label: "Usuários" },
   { href: "/admin/players", icon: Users, label: "Jogadores", obsolete: true },
   { href: "/admin/groups", icon: Trophy, label: "Grupos", obsolete: true },
   { href: "/admin/stadiums", icon: MapPin, label: "Estádios", obsolete: true },

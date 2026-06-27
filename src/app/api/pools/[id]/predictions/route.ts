@@ -3,6 +3,21 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
+function parseScore(value: unknown): number | null {
+  if (typeof value === "number") {
+    return Number.isInteger(value) && value >= 0 && value <= 99 ? value : null;
+  }
+
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    if (!/^\d+$/.test(trimmed)) return null;
+    const score = Number(trimmed);
+    return score >= 0 && score <= 99 ? score : null;
+  }
+
+  return null;
+}
+
 export async function GET(_: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) {
@@ -73,11 +88,11 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       return NextResponse.json({ error: "matchId é obrigatório" }, { status: 400 });
     }
 
-    const homeScore = Number(predictedHomeScore);
-    const awayScore = Number(predictedAwayScore);
+    const homeScore = parseScore(predictedHomeScore);
+    const awayScore = parseScore(predictedAwayScore);
 
-    if (!Number.isInteger(homeScore) || !Number.isInteger(awayScore) || homeScore < 0 || awayScore < 0) {
-      return NextResponse.json({ error: "Placar inválido. Use números inteiros maiores ou iguais a zero." }, { status: 400 });
+    if (homeScore == null || awayScore == null) {
+      return NextResponse.json({ error: "Placar inválido. Use números inteiros entre 0 e 99." }, { status: 400 });
     }
 
     const match = await prisma.match.findUnique({ where: { id: matchId } });

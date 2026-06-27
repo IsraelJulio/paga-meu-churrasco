@@ -26,6 +26,7 @@ interface MatchData {
 
 interface PredictionData {
   id: string;
+  matchId: string;
   predictedHomeScore: number;
   predictedAwayScore: number;
   isLocked: boolean;
@@ -112,7 +113,14 @@ function getEditablePredictionItems(items: PredictionItem[]): PredictionItem[] {
 }
 
 function isPredictionFilled(value?: { home: string; away: string }): boolean {
-  return Boolean(value && value.home !== "" && value.away !== "");
+  return Boolean(value && value.home.trim() !== "" && value.away.trim() !== "");
+}
+
+function parseScoreInput(value: string): number | null {
+  const trimmed = value.trim();
+  if (!/^\d+$/.test(trimmed)) return null;
+  const score = Number(trimmed);
+  return score >= 0 && score <= 99 ? score : null;
 }
 
 function getMissingPredictionCount(
@@ -214,22 +222,73 @@ export default function PredictionsPage({ params }: { params: Promise<{ id: stri
       return;
     }
 
+    const predictionsToSave = filledItems.map((item) => {
+      const val = inputs[item.match.id];
+      return {
+        matchId: item.match.id,
+        predictedHomeScore: parseScoreInput(val.home),
+        predictedAwayScore: parseScoreInput(val.away),
+      };
+    });
+
+    if (predictionsToSave.some((prediction) => prediction.predictedHomeScore == null || prediction.predictedAwayScore == null)) {
+      toast.error("Revise os placares. Use números inteiros entre 0 e 99.");
+      return;
+    }
+
     setSavingAll(true);
     try {
-      for (const item of filledItems) {
-        const val = inputs[item.match.id];
+      const savedPredictions: PredictionData[] = [];
+      for (const prediction of predictionsToSave) {
         const res = await fetch(`/api/pools/${poolId}/predictions`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            matchId: item.match.id,
-            predictedHomeScore: Number(val.home),
-            predictedAwayScore: Number(val.away),
+            matchId: prediction.matchId,
+            predictedHomeScore: prediction.predictedHomeScore,
+            predictedAwayScore: prediction.predictedAwayScore,
           }),
         });
         const data = await res.json();
         if (!res.ok) throw new Error(data.error);
+        savedPredictions.push(data);
       }
+
+      const savedByMatch = new Map(savedPredictions.map((prediction) => [prediction.matchId, prediction]));
+      setItems((prev) =>
+        prev.map((item) => {
+          const savedPrediction = savedByMatch.get(item.match.id);
+          if (!savedPrediction) return item;
+          return {
+            ...item,
+            prediction: {
+              ...(item.prediction ?? {}),
+              ...savedPrediction,
+              score: item.prediction?.score ?? null,
+            },
+          };
+        })
+      );
+      setInputs((prev) => {
+        const next = { ...prev };
+        for (const prediction of savedPredictions) {
+          next[prediction.matchId] = {
+            home: prediction.predictedHomeScore.toString(),
+            away: prediction.predictedAwayScore.toString(),
+          };
+        }
+        return next;
+      });
+      setSavedInputs((prev) => {
+        const next = { ...prev };
+        for (const prediction of savedPredictions) {
+          next[prediction.matchId] = {
+            home: prediction.predictedHomeScore.toString(),
+            away: prediction.predictedAwayScore.toString(),
+          };
+        }
+        return next;
+      });
 
       toast.success(
         `${filledItems.length} ${filledItems.length === 1 ? "palpite salvo" : "palpites salvos"}!`
@@ -239,7 +298,6 @@ export default function PredictionsPage({ params }: { params: Promise<{ id: stri
           `${missingCount} ${missingCount === 1 ? "partida ficou" : "partidas ficaram"} sem preencher.`
         );
       }
-      load();
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : "Erro ao salvar palpites");
     } finally {

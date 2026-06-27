@@ -1,10 +1,48 @@
 import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
+import { jwtVerify } from "jose";
+import { randomUUID } from "crypto";
 import { prisma } from "@/lib/prisma";
 
 export const authOptions: NextAuthOptions = {
   providers: [
+    CredentialsProvider({
+      id: "cartola-sso",
+      name: "Cartola SSO",
+      credentials: {
+        token: { type: "text" },
+      },
+      async authorize(credentials) {
+        if (!credentials?.token) return null;
+        try {
+          const secret = new TextEncoder().encode(
+            process.env.CARTOLA_SSO_SECRET!
+          );
+          const { payload } = await jwtVerify(credentials.token, secret);
+          const login = payload.login as string;
+          const name = payload.name as string;
+          if (!login || !name) return null;
+
+          let user = await prisma.user.findUnique({ where: { login } });
+          if (!user) {
+            const randomPassword = await bcrypt.hash(randomUUID(), 12);
+            user = await prisma.user.create({
+              data: { name, login, passwordHash: randomPassword, role: "User" },
+            });
+          }
+          return {
+            id: user.id,
+            name: user.name,
+            login: user.login,
+            role: user.role,
+            origin: "cartola",
+          };
+        } catch {
+          return null;
+        }
+      },
+    }),
     CredentialsProvider({
       name: "credentials",
       credentials: {
@@ -42,6 +80,7 @@ export const authOptions: NextAuthOptions = {
         token.id = user.id;
         token.role = (user as { role?: string }).role ?? "User";
         token.login = (user as { login?: string }).login;
+        token.origin = (user as { origin?: string }).origin ?? undefined;
       }
       return token;
     },
@@ -50,6 +89,7 @@ export const authOptions: NextAuthOptions = {
         session.user.id = token.id as string;
         session.user.role = token.role as string;
         session.user.login = token.login as string;
+        session.user.origin = (token.origin as string) ?? null;
       }
       return session;
     },

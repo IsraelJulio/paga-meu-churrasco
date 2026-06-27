@@ -19,7 +19,7 @@ export async function GET(req: NextRequest) {
       group: { select: { id: true, name: true } },
       stadium: { select: { id: true, name: true, city: true } },
     },
-    orderBy: { matchDate: "asc" },
+    orderBy: { id: "desc" },
   });
   return NextResponse.json(matches);
 }

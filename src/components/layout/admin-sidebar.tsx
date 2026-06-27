@@ -25,6 +25,7 @@ const navItems = [
   { href: "/admin/rounds", icon: Layers, label: "Rodadas" },
   { href: "/admin/matches", icon: Calendar, label: "Partidas" },
   { href: "/admin/pools", icon: Shuffle, label: "Bolões" },
+  { href: "/admin/users", icon: Users, label: "Usuários" },
   { href: "/admin/players", icon: Users, label: "Jogadores", obsolete: true },
   { href: "/admin/groups", icon: Trophy, label: "Grupos", obsolete: true },
   { href: "/admin/stadiums", icon: MapPin, label: "Estádios", obsolete: true },

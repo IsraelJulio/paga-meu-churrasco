@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { PageSpinner } from "@/components/ui/spinner";
 import { Dialog } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { ChevronLeft, Crown, Lock, CheckCircle, Clock, AlertTriangle, Info } from "lucide-react";
+import { ChevronLeft, Crown, Lock, CheckCircle, Clock, AlertTriangle, Info, Save } from "lucide-react";
 import { MATCH_STATUS_LABELS, MATCH_PHASE_LABELS } from "@/types";
 import { formatDateTime } from "@/lib/utils";
 import { TeamFlag } from "@/components/ui/team-flag";
@@ -107,13 +107,30 @@ function hasMissingDoublePick(items: PredictionItem[]): boolean {
   });
 }
 
+function getEditablePredictionItems(items: PredictionItem[]): PredictionItem[] {
+  return items.filter((item) => !isMatchLocked(item.match.matchDate, item.match.status));
+}
+
+function isPredictionFilled(value?: { home: string; away: string }): boolean {
+  return Boolean(value && value.home !== "" && value.away !== "");
+}
+
+function getMissingPredictionCount(
+  items: PredictionItem[],
+  inputs: Record<string, { home: string; away: string }>
+): number {
+  return getEditablePredictionItems(items).filter(
+    (item) => !isPredictionFilled(inputs[item.match.id])
+  ).length;
+}
+
 export default function PredictionsPage({ params }: { params: Promise<{ id: string }> }) {
   const { id: poolId } = use(params);
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const router = useRouter();
   const [items, setItems] = useState<PredictionItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [savingMatch, setSavingMatch] = useState<string | null>(null);
+  const [savingAll, setSavingAll] = useState(false);
   const [doublePickLoading, setDoublePickLoading] = useState<string | null>(null);
   const [inputs, setInputs] = useState<Record<string, { home: string; away: string }>>({});
   const [savedInputs, setSavedInputs] = useState<Record<string, { home: string; away: string }>>({});
@@ -123,9 +140,16 @@ export default function PredictionsPage({ params }: { params: Promise<{ id: stri
   const [activeTab, setActiveTab] = useState<"current" | "previous">("current");
 
   const load = useCallback(() => {
+    if (status !== "authenticated") return;
+
     fetch(`/api/pools/${poolId}/predictions`)
-      .then((r) => r.json())
-      .then((data: PredictionItem[]) => {
+      .then(async (r) => {
+        const data = await r.json();
+        if (!r.ok) throw new Error(data.error ?? "Erro ao carregar palpites");
+        if (!Array.isArray(data)) throw new Error("Resposta inválida ao carregar palpites");
+        return data as PredictionItem[];
+      })
+      .then((data) => {
         setItems(data);
         const init: Record<string, { home: string; away: string }> = {};
         for (const item of data) {
@@ -137,10 +161,22 @@ export default function PredictionsPage({ params }: { params: Promise<{ id: stri
         setInputs(init);
         setSavedInputs(init);
       })
+      .catch((err: unknown) => {
+        setItems([]);
+        setInputs({});
+        setSavedInputs({});
+        toast.error(err instanceof Error ? err.message : "Erro ao carregar palpites");
+      })
       .finally(() => setLoading(false));
-  }, [poolId]);
+  }, [poolId, status]);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      router.push("/login");
+      return;
+    }
+    load();
+  }, [load, router, status]);
 
   useEffect(() => {
     function onBeforeUnload(e: BeforeUnloadEvent) {
@@ -163,31 +199,51 @@ export default function PredictionsPage({ params }: { params: Promise<{ id: stri
     }
   }
 
-  async function savePrediction(matchId: string) {
-    const val = inputs[matchId];
-    if (val?.home === "" || val?.away === "") {
-      toast.error("Preencha os dois placares");
+  async function saveAllPredictions() {
+    const editableItems = getEditablePredictionItems(items);
+    const filledItems = editableItems.filter((item) => isPredictionFilled(inputs[item.match.id]));
+    const missingCount = editableItems.length - filledItems.length;
+
+    if (filledItems.length === 0) {
+      toast.error("Preencha ao menos um placar");
+      if (missingCount > 0) {
+        toast.info(
+          `${missingCount} ${missingCount === 1 ? "partida ficou" : "partidas ficaram"} sem preencher.`
+        );
+      }
       return;
     }
-    setSavingMatch(matchId);
+
+    setSavingAll(true);
     try {
-      const res = await fetch(`/api/pools/${poolId}/predictions`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          matchId,
-          predictedHomeScore: Number(val.home),
-          predictedAwayScore: Number(val.away),
-        }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
-      toast.success("Palpite salvo!");
+      for (const item of filledItems) {
+        const val = inputs[item.match.id];
+        const res = await fetch(`/api/pools/${poolId}/predictions`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            matchId: item.match.id,
+            predictedHomeScore: Number(val.home),
+            predictedAwayScore: Number(val.away),
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error);
+      }
+
+      toast.success(
+        `${filledItems.length} ${filledItems.length === 1 ? "palpite salvo" : "palpites salvos"}!`
+      );
+      if (missingCount > 0) {
+        toast.info(
+          `${missingCount} ${missingCount === 1 ? "partida ficou" : "partidas ficaram"} sem preencher.`
+        );
+      }
       load();
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : "Erro ao salvar palpite");
+      toast.error(err instanceof Error ? err.message : "Erro ao salvar palpites");
     } finally {
-      setSavingMatch(null);
+      setSavingAll(false);
     }
   }
 
@@ -225,6 +281,9 @@ export default function PredictionsPage({ params }: { params: Promise<{ id: stri
     .filter((g) => g.key !== currentRoundKey && g.key !== "no-round")
     .sort((a, b) => a.sortDate.localeCompare(b.sortDate));
   const showTabs = previousGroups.length > 0;
+  const editableItems = getEditablePredictionItems(items);
+  const hasEditablePredictions = editableItems.length > 0;
+  const missingPredictionCount = getMissingPredictionCount(items, inputs);
 
   function renderGroups(groupList: GroupedRound[], readonly = false) {
     return groupList.map((group) => (
@@ -242,7 +301,6 @@ export default function PredictionsPage({ params }: { params: Promise<{ id: stri
               key={item.match.id}
               item={item}
               inputs={inputs}
-              savingMatch={savingMatch}
               doublePickLoading={doublePickLoading}
               readonly={readonly}
               onInputChange={(matchId, side, value) =>
@@ -251,7 +309,6 @@ export default function PredictionsPage({ params }: { params: Promise<{ id: stri
                   [matchId]: { ...prev[matchId], [side]: value },
                 }))
               }
-              onSave={savePrediction}
               onToggleDouble={toggleDouble}
             />
           ))}
@@ -318,7 +375,30 @@ export default function PredictionsPage({ params }: { params: Promise<{ id: stri
           </div>
         )}
 
-        {(!showTabs || activeTab === "current") && renderGroups(currentGroups)}
+        {(!showTabs || activeTab === "current") && (
+          <>
+            {renderGroups(currentGroups)}
+            {hasEditablePredictions && (
+              <div className="mt-6 pb-4">
+                <Button
+                  variant="primary"
+                  size="lg"
+                  className="w-full"
+                  loading={savingAll}
+                  onClick={saveAllPredictions}
+                >
+                  <Save className="h-5 w-5" />
+                  Salvar todos os palpites
+                </Button>
+                {missingPredictionCount > 0 && (
+                  <p className="mt-3 text-center text-xs text-slate-500">
+                    {missingPredictionCount} {missingPredictionCount === 1 ? "partida sem placar" : "partidas sem placar"}
+                  </p>
+                )}
+              </div>
+            )}
+          </>
+        )}
 
         {showTabs && activeTab === "previous" && renderGroups(previousGroups, true)}
       </main>
@@ -413,20 +493,16 @@ export default function PredictionsPage({ params }: { params: Promise<{ id: stri
 function MatchPredictionCard({
   item,
   inputs,
-  savingMatch,
   doublePickLoading,
   readonly,
   onInputChange,
-  onSave,
   onToggleDouble,
 }: {
   item: PredictionItem;
   inputs: Record<string, { home: string; away: string }>;
-  savingMatch: string | null;
   doublePickLoading: string | null;
   readonly?: boolean;
   onInputChange: (matchId: string, side: "home" | "away", value: string) => void;
-  onSave: (matchId: string) => void;
   onToggleDouble: (matchId: string) => void;
 }) {
   const { match, prediction, isDouble } = item;
@@ -551,22 +627,12 @@ function MatchPredictionCard({
                 className="flex-1 h-14 text-center text-2xl font-black text-white font-display rounded-xl border-2 border-white/10 bg-white/5 focus:border-orange-400/70 focus:outline-none focus:shadow-[0_0_15px_rgba(249,115,22,0.2)] transition-all"
               />
             </div>
-            <div className="flex gap-2">
-              <Button
-                variant="primary"
-                size="sm"
-                className="flex-1"
-                loading={savingMatch === match.id}
-                onClick={() => onSave(match.id)}
-                disabled={val.home === "" || val.away === ""}
-              >
-                {prediction ? "Atualizar" : "Salvar palpite"}
-              </Button>
+            <div className="flex justify-end">
               {hasRound && (
                 <button
                   onClick={() => onToggleDouble(match.id)}
                   disabled={doublePickLoading === match.id}
-                  className={`px-3 py-2 rounded-xl text-xs font-bold transition-all border ${
+                  className={`h-10 w-10 inline-flex items-center justify-center rounded-xl text-xs font-bold transition-all border ${
                     isDouble
                       ? "bg-amber-500 border-amber-500 text-white shadow-[0_0_12px_rgba(245,158,11,0.4)]"
                       : "border-amber-400/30 text-amber-400 hover:bg-amber-500/10 hover:border-amber-400/50"

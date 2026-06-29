@@ -308,6 +308,34 @@ export default function PredictionsPage({ params }: { params: Promise<{ id: stri
   async function toggleDouble(matchId: string) {
     setDoublePickLoading(matchId);
     try {
+      const val = inputs[matchId];
+      if (isPredictionFilled(val)) {
+        const home = parseScoreInput(val.home);
+        const away = parseScoreInput(val.away);
+        if (home == null || away == null) {
+          toast.error("Revise o placar. Use números inteiros entre 0 e 99.");
+          return;
+        }
+        const predRes = await fetch(`/api/pools/${poolId}/predictions`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ matchId, predictedHomeScore: home, predictedAwayScore: away }),
+        });
+        const predData = await predRes.json();
+        if (!predRes.ok) throw new Error(predData.error);
+        setItems((prev) =>
+          prev.map((item) =>
+            item.match.id === matchId
+              ? { ...item, prediction: { ...(item.prediction ?? {}), ...predData, score: item.prediction?.score ?? null } }
+              : item
+          )
+        );
+        setSavedInputs((prev) => ({
+          ...prev,
+          [matchId]: { home: home.toString(), away: away.toString() },
+        }));
+      }
+
       const res = await fetch(`/api/pools/${poolId}/double-pick`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },

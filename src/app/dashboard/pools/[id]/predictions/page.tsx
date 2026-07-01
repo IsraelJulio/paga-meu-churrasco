@@ -337,7 +337,7 @@ export default function PredictionsPage({ params }: { params: Promise<{ id: stri
   );
   const previousGroups = groups
     .filter((g) => g.key !== currentRoundKey && g.key !== "no-round")
-    .sort((a, b) => a.sortDate.localeCompare(b.sortDate));
+    .sort((a, b) => b.sortDate.localeCompare(a.sortDate));
   const showTabs = previousGroups.length > 0;
   const editableItems = getEditablePredictionItems(items);
   const hasEditablePredictions = editableItems.length > 0;

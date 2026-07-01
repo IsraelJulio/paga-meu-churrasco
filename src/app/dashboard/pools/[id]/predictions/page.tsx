@@ -207,19 +207,21 @@ export default function PredictionsPage({ params }: { params: Promise<{ id: stri
     }
   }
 
-  async function saveAllPredictions() {
+  async function saveAllPredictions(options?: { allowEmpty?: boolean; showSuccess?: boolean }) {
     const editableItems = getEditablePredictionItems(items);
     const filledItems = editableItems.filter((item) => isPredictionFilled(inputs[item.match.id]));
     const missingCount = editableItems.length - filledItems.length;
 
     if (filledItems.length === 0) {
+      if (options?.allowEmpty) return true;
+
       toast.error("Preencha ao menos um placar");
       if (missingCount > 0) {
         toast.info(
           `${missingCount} ${missingCount === 1 ? "partida ficou" : "partidas ficaram"} sem preencher.`
         );
       }
-      return;
+      return false;
     }
 
     const predictionsToSave = filledItems.map((item) => {
@@ -233,7 +235,7 @@ export default function PredictionsPage({ params }: { params: Promise<{ id: stri
 
     if (predictionsToSave.some((prediction) => prediction.predictedHomeScore == null || prediction.predictedAwayScore == null)) {
       toast.error("Revise os placares. Use números inteiros entre 0 e 99.");
-      return;
+      return false;
     }
 
     setSavingAll(true);
@@ -290,23 +292,35 @@ export default function PredictionsPage({ params }: { params: Promise<{ id: stri
         return next;
       });
 
-      toast.success(
-        `${filledItems.length} ${filledItems.length === 1 ? "palpite salvo" : "palpites salvos"}!`
-      );
-      if (missingCount > 0) {
+      if (options?.showSuccess !== false) {
+        toast.success(
+          `${filledItems.length} ${filledItems.length === 1 ? "palpite salvo" : "palpites salvos"}!`
+        );
+      }
+      if (options?.showSuccess !== false && missingCount > 0) {
         toast.info(
           `${missingCount} ${missingCount === 1 ? "partida ficou" : "partidas ficaram"} sem preencher.`
         );
       }
+      return true;
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : "Erro ao salvar palpites");
+      return false;
     } finally {
       setSavingAll(false);
     }
   }
 
   async function toggleDouble(matchId: string) {
+    if (doublePickLoading !== null || savingAll) return;
+
     setDoublePickLoading(matchId);
+    const saved = await saveAllPredictions({ allowEmpty: true, showSuccess: false });
+    if (!saved) {
+      setDoublePickLoading(null);
+      return;
+    }
+
     try {
       const res = await fetch(`/api/pools/${poolId}/double-pick`, {
         method: "POST",
@@ -443,7 +457,9 @@ export default function PredictionsPage({ params }: { params: Promise<{ id: stri
                   size="lg"
                   className="w-full"
                   loading={savingAll}
-                  onClick={saveAllPredictions}
+                  onClick={() => {
+                    void saveAllPredictions();
+                  }}
                 >
                   <Save className="h-5 w-5" />
                   Salvar todos os palpites
@@ -689,7 +705,7 @@ function MatchPredictionCard({
               {hasRound && (
                 <button
                   onClick={() => onToggleDouble(match.id)}
-                  disabled={doublePickLoading === match.id}
+                  disabled={doublePickLoading !== null}
                   className={`h-10 w-10 inline-flex items-center justify-center rounded-xl text-xs font-bold transition-all border ${
                     isDouble
                       ? "bg-amber-500 border-amber-500 text-white shadow-[0_0_12px_rgba(245,158,11,0.4)]"
